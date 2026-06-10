@@ -1,958 +1,639 @@
-(function () {
+// ═══════════════════════════════════════════════════════════════
+// MOBILE FIX v3 — Complete rewrite
+// Fixes: modal save buttons hidden, no menu on floor, no back btn
+// ═══════════════════════════════════════════════════════════════
 
-  /* ═══════════════════════════════════════════════════════════
-     CSS
-  ═══════════════════════════════════════════════════════════ */
-  const css = `
-* { box-sizing: border-box; }
+var IS_MOBILE = window.innerWidth <= 768;
+window.addEventListener('resize', function(){ IS_MOBILE = window.innerWidth <= 768; });
 
-/* ── Bottom nav ──────────────────────────────────────────── */
-.mobile-bottom-nav {
+// ── 1. INJECT CSS ─────────────────────────────────────────────
+var style = document.createElement('style');
+style.id = 'mob-fix-v3';
+style.textContent = `
+
+/* ════ BOTTOM NAV ════════════════════════════════════════════ */
+.mob-nav {
   display: none;
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  z-index: 9999;
-  height: 60px;
-  background: var(--bg-2, #16191f);
-  border-top: 1px solid var(--line, #2a2e38);
-  align-items: stretch;
-  justify-content: space-around;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 9000;
+  height: 58px; background: var(--bg-2); border-top: 1px solid var(--line);
+  align-items: stretch; justify-content: space-around;
 }
-.mobile-bottom-nav button {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-dim, #555e6e);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 6px 2px;
-  position: relative;
-  transition: color 0.15s;
-}
-.mobile-bottom-nav button.active { color: var(--amber, #f59e0b); }
-.mobile-bottom-nav button.active::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 20%; right: 20%;
-  height: 2px;
-  background: var(--amber, #f59e0b);
-  border-radius: 0 0 2px 2px;
-}
-.mobile-bottom-nav button svg { width: 20px; height: 20px; }
-
-/* ── Add Items FAB ───────────────────────────────────────── */
-#mob-add-items-btn { display: none; }
-
-/* ── Menu Bottom Sheet ───────────────────────────────────── */
-#mob-menu-sheet {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-}
-#mob-menu-sheet.open { display: block; }
-#mob-menu-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-}
-#mob-menu-drawer {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 88vh;
-  background: var(--bg-2, #16191f);
-  border-radius: 18px 18px 0 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transform: translateY(100%);
-  transition: transform 0.32s cubic-bezier(.32,1,.45,1);
-}
-#mob-menu-sheet.open #mob-menu-drawer { transform: translateY(0); }
-#mob-menu-drag-handle {
-  width: 36px; height: 4px;
-  background: var(--line, #2a2e38);
-  border-radius: 2px;
-  margin: 10px auto 0;
-  flex-shrink: 0;
-}
-#mob-menu-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px 6px;
-  flex-shrink: 0;
-}
-#mob-menu-topbar h2 {
-  font-size: 16px; font-weight: 600;
-  color: var(--text, #e2e8f0); margin: 0;
-}
-#mob-menu-close {
+.mob-nav-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
   background: none; border: none; cursor: pointer;
-  color: var(--text-dim, #555e6e); padding: 4px; font-size: 22px; line-height: 1;
+  color: var(--text-dim); font-size: 9px; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase; padding: 6px 2px;
+  position: relative; transition: color .15s;
 }
-#mob-cat-tabs {
-  display: flex; flex-wrap: nowrap; overflow-x: auto;
-  gap: 6px; padding: 4px 14px 10px;
-  scrollbar-width: none; flex-shrink: 0;
-  border-bottom: 1px solid var(--line, #2a2e38);
+.mob-nav-btn svg { width: 20px; height: 20px; stroke-width: 1.75; }
+.mob-nav-btn.active { color: var(--amber); }
+.mob-nav-btn.active::after {
+  content: ''; position: absolute; top: 0; left: 20%; right: 20%;
+  height: 2px; background: var(--amber); border-radius: 0 0 2px 2px;
 }
-#mob-cat-tabs::-webkit-scrollbar { display: none; }
-#mob-cat-tabs button {
+
+/* ════ MENU BOTTOM SHEET ════════════════════════════════════ */
+.mob-sheet-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 9500;
+  background: rgba(0,0,0,.6);
+}
+.mob-sheet-backdrop.open { display: block; }
+.mob-sheet {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 9501;
+  height: 88vh; background: var(--bg-2);
+  border-radius: 18px 18px 0 0;
+  display: flex; flex-direction: column; overflow: hidden;
+  transform: translateY(100%);
+  transition: transform .32s cubic-bezier(.32,1,.45,1);
+  pointer-events: none;
+}
+.mob-sheet.open { transform: translateY(0); pointer-events: all; }
+.mob-sheet-handle {
+  width: 36px; height: 4px; background: var(--line);
+  border-radius: 2px; margin: 10px auto 0; flex-shrink: 0;
+}
+.mob-sheet-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px 8px; flex-shrink: 0;
+  border-bottom: 1px solid var(--line);
+}
+.mob-sheet-head h2 { font-size: 15px; font-weight: 700; color: var(--text); margin: 0; }
+.mob-sheet-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-dim); font-size: 22px; line-height: 1; padding: 4px;
+}
+.mob-cat-bar {
+  display: flex; overflow-x: auto; gap: 6px;
+  padding: 8px 14px; flex-shrink: 0; scrollbar-width: none;
+}
+.mob-cat-bar::-webkit-scrollbar { display: none; }
+.mob-cat-btn {
   flex-shrink: 0; padding: 5px 13px; font-size: 12px; font-weight: 600;
-  border-radius: 20px; border: 1px solid var(--line, #2a2e38);
-  background: none; color: var(--text-dim, #555e6e);
-  cursor: pointer; white-space: nowrap; transition: all 0.15s;
+  border-radius: 20px; border: 1px solid var(--line);
+  background: none; color: var(--text-dim); cursor: pointer;
+  white-space: nowrap; transition: all .15s;
 }
-#mob-cat-tabs button.active {
-  background: var(--amber, #f59e0b);
-  border-color: var(--amber, #f59e0b); color: #000;
-}
-#mob-menu-scroll {
-  flex: 1; overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 10px 14px 20px;
-}
-.mob-menu-card {
+.mob-cat-btn.active { background: var(--amber); border-color: var(--amber); color: #000; }
+.mob-items-list { flex: 1; overflow-y: auto; padding: 8px 14px 20px; -webkit-overflow-scrolling: touch; }
+.mob-item-row {
   display: flex; align-items: center; gap: 12px;
-  padding: 10px 0; border-bottom: 1px solid var(--line, #1e2330); cursor: pointer;
+  padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer;
 }
-.mob-menu-card:active { opacity: 0.7; }
-.mob-menu-card-img {
-  width: 62px; height: 62px; border-radius: 8px;
-  object-fit: cover; background: var(--bg-3, #0f1117); flex-shrink: 0;
+.mob-item-img {
+  width: 60px; height: 60px; border-radius: 8px;
+  object-fit: cover; flex-shrink: 0; background: var(--bg-3);
 }
-.mob-menu-card-img-placeholder {
-  width: 62px; height: 62px; border-radius: 8px;
-  background: var(--bg-3, #0f1117); flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; font-size: 24px;
+.mob-item-emoji {
+  width: 60px; height: 60px; border-radius: 8px;
+  background: var(--bg-3); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 26px;
 }
-.mob-menu-card-info { flex: 1; min-width: 0; }
-.mob-menu-card-name {
-  font-size: 13px; font-weight: 600; color: var(--text, #e2e8f0);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.mob-item-info { flex: 1; min-width: 0; }
+.mob-item-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.mob-item-desc { font-size: 11px; color: var(--text-dim); margin-top: 2px; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.mob-item-price { font-size: 13px; font-weight: 700; color: var(--amber); margin-top: 4px; }
+.mob-item-add {
+  width: 34px; height: 34px; border-radius: 50%; background: var(--amber);
+  border: none; color: #000; font-size: 22px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: transform .1s;
 }
-.mob-menu-card-desc {
-  font-size: 11px; color: var(--text-dim, #555e6e); margin-top: 2px;
-  overflow: hidden; display: -webkit-box;
-  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-}
-.mob-menu-card-price {
-  font-size: 13px; font-weight: 600; color: var(--amber, #f59e0b); margin-top: 4px;
-}
-.mob-menu-card-add {
-  width: 34px; height: 34px; border-radius: 50%;
-  background: var(--amber, #f59e0b); border: none; cursor: pointer;
-  color: #000; font-size: 24px; font-weight: 300;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; transition: transform 0.1s; line-height: 1;
-}
-.mob-menu-card-add:active { transform: scale(0.88); }
-.mob-86d {
-  font-size: 9px; font-weight: 700; background: #ef4444; color: #fff;
-  border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: middle;
-}
-.mob-menu-card.unavail { opacity: 0.4; pointer-events: none; }
+.mob-item-add:active { transform: scale(.88); }
+.mob-item-unavail { font-size: 9px; font-weight: 700; background: #ef4444; color: #fff;
+  border-radius: 3px; padding: 1px 4px; margin-left: 5px; vertical-align: middle; }
 
-/* Toast */
-#mob-add-toast {
-  position: fixed; bottom: 74px; left: 50%;
+/* ════ ADD ITEMS BUTTON (inside order panel) ══════════════════ */
+.mob-add-items-bar {
+  display: none;
+  width: 100%; padding: 12px 16px; margin: 0 0 10px;
+  background: var(--amber); color: #000;
+  font-size: 14px; font-weight: 700;
+  border: none; border-radius: 10px; cursor: pointer;
+  align-items: center; justify-content: center; gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ════ TOAST ════════════════════════════════════════════════ */
+#mob-toast {
+  position: fixed; bottom: 68px; left: 50%;
   transform: translateX(-50%) translateY(10px);
-  background: var(--amber, #f59e0b); color: #000;
+  background: var(--amber); color: #000;
   font-size: 13px; font-weight: 700; padding: 7px 18px;
-  border-radius: 20px; z-index: 10100;
+  border-radius: 20px; z-index: 9999;
   opacity: 0; pointer-events: none;
-  transition: opacity 0.2s, transform 0.2s; white-space: nowrap;
+  transition: opacity .2s, transform .2s; white-space: nowrap;
 }
-#mob-add-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#mob-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* ════════════════════════════════════════════════════════════
-   RESPONSIVE
-════════════════════════════════════════════════════════════ */
+/* ════ RESPONSIVE ════════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-  .mobile-bottom-nav { display: flex !important; }
+  /* Show bottom nav, hide sidebar */
+  .mob-nav { display: flex !important; }
   .sidebar { display: none !important; }
 
-  html, body {
-    height: 100% !important;
-    overflow: hidden !important;
-  }
-  #root {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    min-width: 0 !important;
-    overflow: hidden !important;
-  }
+  /* Root layout */
+  html, body { height: 100% !important; overflow: hidden !important; }
+  #root { display: flex !important; flex-direction: column !important;
+    width: 100vw !important; height: 100vh !important; overflow: hidden !important; }
 
-  /* ── Single scroll container ─────────────────────────────── */
+  /* Main column scrollable */
   .main-col {
-    flex: 1 1 0 !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
+    flex: 1 1 0 !important; width: 100% !important;
+    overflow-x: hidden !important; overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    padding-bottom: 70px !important;
-    height: auto !important;
-    max-height: none !important;
-    display: flex !important;
-    flex-direction: column !important;
+    padding-bottom: 68px !important; min-height: 0 !important;
   }
 
-  /* ── Topbar ──────────────────────────────────────────────── */
+  /* Topbar compact */
   .topbar {
-    display: flex !important; flex-direction: row !important;
-    flex-wrap: nowrap !important; align-items: center !important;
-    padding: 8px 12px !important; gap: 8px !important;
-    height: auto !important; flex-shrink: 0 !important;
+    padding: 8px 12px !important; flex-shrink: 0 !important;
+    flex-wrap: nowrap !important;
   }
-  .page-title { flex: 1; min-width: 0; }
-  .page-title-main {
-    font-size: 16px !important; white-space: nowrap !important;
-    overflow: hidden !important; text-overflow: ellipsis !important;
-  }
-  .page-title-sub { display: none !important; }
-  .topbar-right   { display: flex !important; align-items: center !important; gap: 6px !important; flex-shrink: 0 !important; }
-  .search-box     { display: none !important; }
-  .cashier-chip   { display: none !important; }
-  .shift-badge    { display: none !important; }
-  .clock          { display: none !important; }
+  .page-title-sub, .search-box, .cashier-chip, .shift-badge, .clock { display: none !important; }
+  .page-title-main { font-size: 15px !important; }
 
-  /* ── Stats ───────────────────────────────────────────────── */
-  .stats-strip {
-    display: grid !important; grid-template-columns: 1fr 1fr !important;
-    gap: 6px !important; padding: 8px 10px !important; flex-shrink: 0 !important;
-  }
-  .stat-tile       { padding: 8px 10px !important; border-radius: 8px !important; }
+  /* Stats grid 2 cols */
+  .stats-strip { display: grid !important; grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important; padding: 8px 10px !important; }
+  .stat-tile { padding: 8px 10px !important; }
   .stat-tile-value { font-size: 18px !important; }
-  .stat-tile-label { font-size: 9px !important; }
-  .stat-tile-delta { font-size: 9px !important; margin-top: 2px !important; }
 
-  /* ── Alerts ──────────────────────────────────────────────── */
-  .tip-banner {
-    font-size: 11px !important; padding: 8px 10px !important;
-    margin: 4px 10px !important; flex-shrink: 0 !important;
-  }
+  /* Tip banner */
+  .tip-banner { font-size: 11px !important; padding: 7px 10px !important; margin: 0 10px 6px !important; }
   .tip-banner kbd { display: none !important; }
-  .alerts-strip   { padding: 0 10px 6px !important; flex-wrap: wrap !important; gap: 4px !important; }
-  .alert-chip     { font-size: 10px !important; padding: 3px 7px !important; }
 
-  /* ── Dash layout ─────────────────────────────────────────── */
-  .dash-body {
-    display: flex !important; flex-direction: column !important;
-    height: auto !important; min-height: 0 !important;
-    max-height: none !important; overflow: visible !important;
-    flex: 1 1 auto !important;
-  }
-  .dash-center {
-    display: block !important; width: 100% !important;
-    height: auto !important; max-height: none !important;
-    overflow: visible !important; flex: none !important;
-  }
-  .dash-right {
-    display: block !important; width: 100% !important;
-    height: auto !important; max-height: none !important;
+  /* Alerts */
+  .alerts-strip { padding: 0 10px 4px !important; flex-wrap: wrap !important; gap: 4px !important; }
+  .alert-chip { font-size: 10px !important; padding: 3px 7px !important; }
+
+  /* Dash layout — vertical stack */
+  .dash-body { flex-direction: column !important; height: auto !important;
+    overflow: visible !important; }
+  .dash-center { overflow: visible !important; height: auto !important;
+    max-height: none !important; padding: 8px 10px !important; }
+  .dash-right { width: 100% !important; height: auto !important;
     overflow: visible !important; border-left: none !important;
-    border-top: 1px solid var(--line, #2a2e38) !important; flex: none !important;
-  }
+    border-top: 1px solid var(--line) !important; }
 
-  /* ── Floor grid ──────────────────────────────────────────── */
-  .floor-grid {
-    display: grid !important;
+  /* Floor grid */
+  .floor-grid { display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
-    gap: 7px !important; padding: 8px 10px !important;
-    height: auto !important; overflow: visible !important;
-  }
-  .table-card   { padding: 8px 6px !important; min-width: 0 !important; height: auto !important; }
-  .table-num    { font-size: 17px !important; }
-  .table-cap, .table-status { font-size: 9px !important; }
-  .table-waiter { font-size: 9px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
-  .table-meta   { font-size: 9px !important; }
-  .table-total  { font-size: 10px !important; }
+    gap: 7px !important; padding: 8px 10px !important; overflow: visible !important; }
+  .table-card { padding: 8px 6px !important; }
+  .table-num { font-size: 17px !important; }
   .table-splits { display: none !important; }
 
-  /* ── Placeholder ─────────────────────────────────────────── */
-  .no-table-placeholder, .order-placeholder,
-  [class*="placeholder"], [class*="empty-state"] {
-    display: flex !important; flex-direction: column !important;
-    align-items: center !important; justify-content: center !important;
-    padding: 40px 20px !important; height: auto !important; min-height: 160px !important;
-  }
+  /* Workspace (admin, settings, etc) */
+  .workspace, .workspace-inner { height: auto !important; max-height: none !important;
+    overflow: visible !important; }
+  .workspace-inner { padding: 10px !important; }
 
-  /* ── Ticker ──────────────────────────────────────────────── */
-  .live-activity, .activity-section {
-    padding: 8px 10px !important; height: auto !important; overflow: visible !important;
-  }
-  .ticker       { padding: 8px 12px !important; height: auto !important; overflow: visible !important; }
-  .ticker-title { font-size: 10px !important; }
-  .ticker-item  { font-size: 10px !important; padding: 3px 0 !important; }
-  .ticker-time  { font-size: 9px !important; }
-
-  /* ── Desktop menu — hidden, sheet handles it ─────────────── */
+  /* HIDE desktop menu, show mobile sheet */
   .menu-area { display: none !important; }
+  .mob-add-items-bar { display: flex !important; }
 
-  /* ── Order panel ─────────────────────────────────────────── */
-  .order-panel {
-    display: block !important; width: 100% !important;
-    height: auto !important; max-height: none !important;
-    overflow: visible !important; border-radius: 0 !important; padding: 10px 12px !important;
-  }
-  .order-head-row  { flex-wrap: wrap !important; gap: 6px !important; }
-  .order-table-num { font-size: 17px !important; }
-  .split-tabs      { flex-wrap: wrap !important; gap: 4px !important; }
-  .order-items     { max-height: 260px !important; overflow-y: auto !important; }
-  .order-item      { padding: 7px 0 !important; }
-  .qty-btn         { width: 26px !important; height: 26px !important; }
-  .totals          { padding: 8px 0 !important; }
-  .total-row       { font-size: 12px !important; }
-  .total-val       { font-size: 12px !important; }
-  .grand .val      { font-size: 19px !important; }
-  .small-input     { width: 52px !important; }
-  .tax-input       { width: 52px !important; }
-  .order-actions   { flex-wrap: wrap !important; gap: 6px !important; }
-  .order-actions .btn {
-    flex: 1 1 40% !important; font-size: 12px !important;
-    padding: 9px 6px !important; text-align: center !important;
-  }
+  /* Order panel */
+  .order-panel { width: 100% !important; height: auto !important;
+    overflow: visible !important; border-radius: 0 !important;
+    padding: 10px 12px !important; }
+  .order-items { max-height: 280px !important; overflow-y: auto !important; }
+  .order-actions { flex-wrap: wrap !important; gap: 6px !important; }
+  .order-actions .btn { flex: 1 1 40% !important; font-size: 12px !important;
+    padding: 10px 6px !important; min-height: 42px !important; }
 
-  /* ── Add Items button ────────────────────────────────────── */
-  #mob-add-items-btn {
-    display: flex !important;
-    align-items: center; justify-content: center; gap: 8px;
-    width: 100%; padding: 13px; margin: 0 0 12px 0;
-    background: var(--amber, #f59e0b); color: #000;
-    font-size: 14px; font-weight: 700;
-    border: none; border-radius: 10px; cursor: pointer;
-  }
-  #mob-add-items-btn svg { width: 18px; height: 18px; }
+  /* Pay methods */
+  .pay-methods { flex-wrap: wrap !important; gap: 7px !important; }
+  .pay-method { flex: 1 1 40% !important; padding: 10px 6px !important; }
 
-  /* ════════════════════════════════════════════════════════
-     ADMIN PANEL FIXES
-  ════════════════════════════════════════════════════════ */
+  /* Context menu */
+  .ctx-menu { position: fixed !important; bottom: 66px !important;
+    left: 10px !important; right: 10px !important; top: auto !important;
+    width: auto !important; border-radius: 12px !important; z-index: 8999 !important; }
+  .ctx-item { padding: 12px 16px !important; font-size: 14px !important; }
 
-  /* ── Workspace (admin view container) ────────────────────── */
-  .workspace {
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-  }
-  .workspace-inner {
-    padding: 10px !important;
-    max-width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
-  }
-
-  /* ── Admin section tabs (Menu / Tables / Staff etc) ──────── */
-  .admin-tabs,
-  [class*="admin-tab"],
-  [class*="section-tabs"] {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    scrollbar-width: none !important;
-    gap: 4px !important;
-    padding: 6px 10px !important;
-    flex-shrink: 0 !important;
-  }
-  .admin-tabs::-webkit-scrollbar,
-  [class*="admin-tab"]::-webkit-scrollbar { display: none !important; }
-
-  /* ── Item list / category list ───────────────────────────── */
-  .item-list,
-  .cat-list,
-  [class*="item-list"],
-  [class*="cat-list"],
-  [class*="menu-list"] {
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-  }
-
-  /* ── Add Item / Edit Item FORM ───────────────────────────── */
-  /*
-     The form lives in .workspace-inner or a panel.
-     On desktop it's a sidebar with fixed height.
-     On mobile we make it a normal scrollable block.
-     The critical fix: remove any fixed/max height so the
-     Save button at the bottom is reachable.
-  */
-  .item-form,
-  .edit-form,
-  .add-form,
-  [class*="item-form"],
-  [class*="edit-form"],
-  [class*="add-form"],
-  [class*="menu-form"],
-  form {
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-    display: block !important;
-    padding-bottom: 16px !important;
-  }
-
-  /* ── Form fields ─────────────────────────────────────────── */
-  .form-group,
-  .field-group,
-  [class*="form-group"],
-  [class*="field-group"] {
-    margin-bottom: 12px !important;
-  }
-
-  .form-label,
-  label {
-    font-size: 11px !important;
-    margin-bottom: 4px !important;
-    display: block !important;
-  }
-
-  .form-input,
-  .form-select,
-  .form-textarea,
-  input[type="text"],
-  input[type="number"],
-  input[type="url"],
-  input[type="email"],
-  select,
-  textarea {
-    width: 100% !important;
-    font-size: 14px !important;
-    padding: 10px 12px !important;
-    border-radius: 8px !important;
-    min-height: 42px !important;
-  }
-
-  textarea {
-    min-height: 80px !important;
-    resize: vertical !important;
-  }
-
-  /* Two-column form rows → single column on mobile */
-  .form-row,
-  .field-row,
-  [class*="form-row"],
-  [class*="field-row"] {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 10px !important;
-  }
-
-  /* ── Save / Submit buttons inside forms ──────────────────── */
-  .form-actions,
-  .form-footer,
-  [class*="form-action"],
-  [class*="form-footer"],
-  [class*="save-btn"],
-  [class*="submit-btn"] {
-    position: static !important;
-    bottom: auto !important;
-    width: 100% !important;
-    padding: 12px 0 4px !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-  }
-
-  /* Make any submit / save / add button full width and tappable */
-  .form-actions .btn,
-  .form-actions button,
-  .form-footer .btn,
-  .form-footer button,
-  [class*="save-btn"],
-  [class*="submit-btn"],
-  button[type="submit"] {
-    width: 100% !important;
-    min-height: 46px !important;
-    font-size: 14px !important;
-    border-radius: 10px !important;
-  }
-
-  /* ── MODAL / DIALOG — bottom sheet override ──────────────── */
-  /*
-     Both the Add Item modal and Add Category modal need to:
-     1. Anchor to the bottom of the screen
-     2. Have a scrollable body
-     3. Show the footer (save button) always at the bottom
-  */
+  /* ═══ MODAL BOTTOM-SHEET SYSTEM ══════════════════════════ */
+  /* Every modal becomes a bottom sheet */
   .modal-backdrop {
-    position: fixed !important;
-    inset: 0 !important;
-    display: flex !important;
-    align-items: flex-end !important;   /* anchor to bottom */
-    justify-content: center !important;
-    padding: 0 !important;
-    z-index: 9990 !important;
-    background: rgba(0,0,0,0.55) !important;
+    position: fixed !important; inset: 0 !important;
+    display: flex !important; align-items: flex-end !important;
+    justify-content: center !important; padding: 0 !important;
+    z-index: 9100 !important;
   }
 
-  .modal,
-  .dialog,
-  [class*="modal"],
-  [class*="dialog"],
-  [role="dialog"] {
-    /* Full-width bottom sheet */
+  .modal {
     position: relative !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    max-height: 92vh !important;
-    height: auto !important;
+    width: 100% !important; max-width: 100% !important;
+    max-height: 90vh !important; height: auto !important;
     margin: 0 !important;
-    border-radius: 20px 20px 0 0 !important;
-    /* Internal flex column: header | scrollable body | sticky footer */
-    display: flex !important;
-    flex-direction: column !important;
+    border-radius: 18px 18px 0 0 !important;
+    display: flex !important; flex-direction: column !important;
     overflow: hidden !important;
-    /* Prevent the modal itself from being off-screen */
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
+    top: auto !important; left: 0 !important; right: 0 !important;
     transform: none !important;
-    top: auto !important;
   }
 
-  /* Drag handle for modal sheets */
-  .modal::before,
-  [role="dialog"]::before {
-    content: '';
-    display: block;
+  /* Drag pill */
+  .modal::before {
+    content: ''; display: block;
     width: 36px; height: 4px;
-    background: var(--line, #2a2e38);
-    border-radius: 2px;
-    margin: 10px auto 0;
-    flex-shrink: 0;
+    background: var(--line); border-radius: 2px;
+    margin: 10px auto 0; flex-shrink: 0;
   }
 
-  /* Modal header — fixed, never scrolls */
-  .modal-head,
-  .modal-header,
-  .dialog-head,
-  [class*="modal-head"],
-  [class*="dialog-head"] {
-    padding: 12px 16px 10px !important;
+  /* Modal header — fixed height */
+  .modal-head {
+    padding: 10px 16px 10px !important;
     flex-shrink: 0 !important;
-    border-bottom: 1px solid var(--line, #2a2e38) !important;
+    border-bottom: 1px solid var(--line) !important;
   }
-  .modal-head h2,
-  .modal-head h3,
-  .modal-title,
-  [class*="modal-title"] {
-    font-size: 16px !important;
-    font-weight: 600 !important;
-    margin: 0 !important;
-  }
-  .modal-head p,
-  .modal-subtitle,
-  [class*="modal-subtitle"] {
-    font-size: 12px !important;
-    margin: 2px 0 0 !important;
-    color: var(--text-dim, #555e6e) !important;
-  }
+  .modal-title { font-size: 16px !important; }
 
-  /* Modal body — scrolls freely */
-  .modal-body,
-  .dialog-body,
-  [class*="modal-body"],
-  [class*="dialog-body"] {
+  /* Modal body — SCROLLABLE */
+  .modal-body {
     flex: 1 1 0 !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    padding: 14px 16px !important;
-    height: auto !important;
-    max-height: none !important;
-    /* Give extra bottom room so footer doesn't cover last field */
-    padding-bottom: 20px !important;
+    padding: 14px 16px 20px !important;
+    max-height: none !important; height: auto !important;
   }
 
-  /* Modal footer — always visible at the bottom */
-  .modal-foot,
-  .modal-footer,
-  .dialog-foot,
-  [class*="modal-foot"],
-  [class*="modal-footer"],
-  [class*="dialog-foot"] {
+  /* settings-grid inside modal body — single column */
+  .modal-body .settings-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .modal-body .setting-field.full { grid-column: 1 !important; }
+
+  /* Modal footer — ALWAYS VISIBLE AT BOTTOM */
+  .modal-foot {
     flex-shrink: 0 !important;
-    padding: 12px 16px 20px !important;
-    border-top: 1px solid var(--line, #2a2e38) !important;
+    position: relative !important; bottom: auto !important;
+    padding: 12px 16px 24px !important;
+    border-top: 1px solid var(--line) !important;
+    background: var(--bg-2) !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
-    background: var(--bg-2, #16191f) !important;
   }
 
-  /* Buttons inside modal footer */
+  /* Every button in modal footer — full width, tall enough to tap */
   .modal-foot .btn,
-  .modal-foot button,
-  .modal-footer .btn,
-  .modal-footer button,
-  [class*="modal-foot"] .btn,
-  [class*="modal-foot"] button {
+  .modal-foot button {
     width: 100% !important;
-    min-height: 46px !important;
+    min-height: 48px !important;
     font-size: 14px !important;
     font-weight: 600 !important;
     border-radius: 10px !important;
     flex: none !important;
+    justify-content: center !important;
   }
 
-  /* ── Specifically: Add Category modal fields ─────────────── */
-  /* The emoji + category name row */
-  .cat-form-row,
-  [class*="cat-form"],
-  .emoji-row,
-  [class*="emoji-row"] {
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 10px !important;
-    align-items: flex-start !important;
-  }
-  .emoji-picker-btn,
-  [class*="emoji-btn"],
-  [class*="emoji-pick"] {
-    min-width: 60px !important;
-    min-height: 60px !important;
-    font-size: 28px !important;
-    border-radius: 10px !important;
+  /* Checkout split inputs */
+  .split-inputs { flex-direction: column !important; }
+
+  /* Admin section tabs */
+  [style*="display: flex"][style*="borderBottom"] {
+    overflow-x: auto !important; flex-wrap: nowrap !important;
+    scrollbar-width: none !important;
   }
 
-  /* ── Admin panel top action row (Add Item / Add Category btns) */
-  .admin-actions,
-  .panel-actions,
-  [class*="admin-action"],
-  [class*="panel-action"] {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-    padding: 8px 10px !important;
+  /* Section head action row */
+  .section-head {
+    flex-wrap: wrap !important; gap: 8px !important;
+    padding-bottom: 10px !important;
   }
-  .admin-actions .btn,
-  .panel-actions .btn,
-  [class*="admin-action"] .btn,
-  [class*="panel-action"] .btn {
-    flex: 1 1 auto !important;
-    min-height: 40px !important;
-    font-size: 13px !important;
+  .section-head .btn { min-height: 38px !important; }
+
+  /* Admin item table — horizontal scroll */
+  .admin-table-wrap, table { overflow-x: auto !important; display: block !important;
+    width: 100% !important; }
+  table tbody, table thead { display: table !important; width: 100% !important; }
+
+  /* Admin category cards */
+  [style*="gridTemplateColumns"][style*="minmax(240px"] {
+    grid-template-columns: 1fr 1fr !important;
   }
 
-  /* Pay methods */
-  .pay-methods { flex-wrap: wrap !important; gap: 7px !important; }
-  .pay-method  { flex: 1 1 40% !important; padding: 10px 6px !important; }
+  /* KOT / Receipt paper — scale to screen */
+  .kot-paper, .bill-paper { width: 100% !important; max-width: 320px !important; }
 
-  /* Ctx menu */
-  .ctx-menu {
-    position: fixed !important; bottom: 68px !important;
-    left: 10px !important; right: 10px !important;
-    top: auto !important; width: auto !important;
-    border-radius: 12px !important; z-index: 9998 !important;
+  /* Live activity ticker */
+  .ticker { padding: 8px 12px !important; }
+  .ticker-item { font-size: 10px !important; }
+
+  /* No-print keep bottom nav visible */
+  .no-print { display: none; }
+}
+
+/* ════ PRINT ═════════════════════════════════════════════════ */
+@media print {
+  body * { visibility: hidden; }
+  body.printing-kot .print-kot-target,
+  body.printing-kot .print-kot-target * { visibility: visible; }
+  body.printing-kot .print-kot-target {
+    position: fixed; top: 0; left: 0; width: 80mm; background: #fff; padding: 8px;
   }
-  .ctx-item { padding: 12px 16px !important; font-size: 14px !important; }
+  body.printing-bill .print-bill-target,
+  body.printing-bill .print-bill-target * { visibility: visible; }
+  body.printing-bill .print-bill-target {
+    position: fixed; top: 0; left: 0; width: 80mm; background: #fff; padding: 8px;
+  }
+  .mob-nav, .mob-sheet, .mob-sheet-backdrop, #mob-toast { display: none !important; }
 }
 `;
+document.head.appendChild(style);
 
-  /* ── Inject CSS ──────────────────────────────────────────── */
-  const oldStyle = document.getElementById('mobile-responsive-fix');
-  if (oldStyle) oldStyle.remove();
-  const style = document.createElement('style');
-  style.id = 'mobile-responsive-fix';
-  style.textContent = css;
-  document.head.appendChild(style);
+// ── 2. TOAST ─────────────────────────────────────────────────
+var toastEl = document.createElement('div');
+toastEl.id = 'mob-toast';
+document.body.appendChild(toastEl);
+var toastTimer;
+function showToast(msg) {
+  toastEl.textContent = '✓ ' + msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 1800);
+}
 
-  /* ═══════════════════════════════════════════════════════════
-     MODAL STRUCTURE FIXER
-     Ensures every modal/dialog has the correct
-     head → body → foot structure so the save button
-     is always visible and the body scrolls.
-  ═══════════════════════════════════════════════════════════ */
-  function fixModal(modal) {
-    if (modal.dataset.mobFixed) return;
-    modal.dataset.mobFixed = '1';
+// ── 3. BOTTOM NAV ─────────────────────────────────────────────
+var NAV = [
+  { id: 'floor', label: 'Floor', idx: 0,
+    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>' },
+  { id: 'reservations', label: 'Reserve', idx: 1,
+    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' },
+  { id: 'customers', label: 'Guests', idx: 2,
+    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
+  { id: 'history', label: 'Orders', idx: 3,
+    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4M3 17V11h6"/></svg>' },
+  { id: 'admin', label: 'Admin', idx: 5,
+    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>' },
+];
 
-    // Already flex-column from CSS — just make sure body is scrollable
-    var body = modal.querySelector(
-      '.modal-body, .dialog-body, [class*="modal-body"], [class*="dialog-body"]'
-    );
-    var foot = modal.querySelector(
-      '.modal-foot, .modal-footer, .dialog-foot, [class*="modal-foot"], [class*="modal-footer"]'
-    );
+var nav = document.createElement('div');
+nav.className = 'mob-nav no-print';
+var currentView = 'floor';
 
-    if (body) {
-      body.style.overflowY  = 'auto';
-      body.style.webkitOverflowScrolling = 'touch';
-      body.style.flex       = '1 1 0';
-      body.style.maxHeight  = 'none';
-    }
+NAV.forEach(function(item) {
+  var btn = document.createElement('button');
+  btn.className = 'mob-nav-btn' + (item.id === 'floor' ? ' active' : '');
+  btn.dataset.view = item.id;
+  btn.innerHTML = item.svg + '<span>' + item.label + '</span>';
+  btn.addEventListener('click', function() {
+    var sideBtns = document.querySelectorAll('.sidebar-btn');
+    if (sideBtns[item.idx]) sideBtns[item.idx].click();
+    setNavActive(item.id);
+    var mc = document.querySelector('.main-col');
+    if (mc) mc.scrollTop = 0;
+  });
+  nav.appendChild(btn);
+});
+document.body.appendChild(nav);
 
-    if (foot) {
-      foot.style.flexShrink = '0';
-      foot.style.position   = 'relative';
-      foot.style.bottom     = 'auto';
-      // Ensure buttons are full-width
-      foot.querySelectorAll('button, .btn').forEach(function(btn) {
-        btn.style.width     = '100%';
-        btn.style.minHeight = '46px';
-      });
-    }
-  }
+function setNavActive(id) {
+  currentView = id;
+  nav.querySelectorAll('.mob-nav-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.view === id);
+  });
+  // Show/hide Add Items bar depending on view
+  updateAddItemsBar();
+}
 
-  function scanModals() {
-    var isMobile = window.innerWidth <= 768;
-    if (!isMobile) return;
-    document.querySelectorAll(
-      '.modal, .dialog, [class*="modal"]:not(.modal-backdrop):not(.modal-body):not(.modal-head):not(.modal-foot), [role="dialog"]'
-    ).forEach(fixModal);
-  }
+// Watch sidebar active state to keep nav in sync
+var viewIds = ['floor','reservations','customers','history','summary','admin','settings'];
+new MutationObserver(function() {
+  if (!IS_MOBILE) return;
+  var btns = Array.from(document.querySelectorAll('.sidebar-btn'));
+  var active = btns.findIndex(function(b){ return b.classList.contains('active'); });
+  if (active >= 0 && viewIds[active]) setNavActive(viewIds[active]);
+}).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'] });
 
-  new MutationObserver(scanModals)
-    .observe(document.body, { childList: true, subtree: true });
+// ── 4. MENU BOTTOM SHEET ──────────────────────────────────────
+var sheetBackdrop = document.createElement('div');
+sheetBackdrop.className = 'mob-sheet-backdrop';
+sheetBackdrop.addEventListener('click', closeSheet);
+document.body.appendChild(sheetBackdrop);
 
-  /* ═══════════════════════════════════════════════════════════
-     BOTTOM NAV
-  ═══════════════════════════════════════════════════════════ */
-  const NAV_ITEMS = [
-    { id: 'floor',        label: 'Floor',   idx: 0, icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>' },
-    { id: 'reservations', label: 'Reserve', idx: 1, icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' },
-    { id: 'customers',    label: 'Guests',  idx: 2, icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
-    { id: 'history',      label: 'Orders',  idx: 3, icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4M3 17V11h6"/></svg>' },
-    { id: 'admin',        label: 'Admin',   idx: 5, icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>' },
-  ];
+var sheet = document.createElement('div');
+sheet.className = 'mob-sheet';
+sheet.innerHTML = [
+  '<div class="mob-sheet-handle"></div>',
+  '<div class="mob-sheet-head">',
+    '<h2>Add Items</h2>',
+    '<button class="mob-sheet-close" aria-label="Close">&#x2715;</button>',
+  '</div>',
+  '<div class="mob-cat-bar" id="mob-cat-bar"></div>',
+  '<div class="mob-items-list" id="mob-items-list"></div>',
+].join('');
+document.body.appendChild(sheet);
+sheet.querySelector('.mob-sheet-close').addEventListener('click', closeSheet);
 
-  function buildNav() {
-    if (document.getElementById('mobile-bottom-nav')) return;
-    var nav = document.createElement('div');
-    nav.id = 'mobile-bottom-nav';
-    nav.className = 'mobile-bottom-nav no-print';
+// Swipe down to close
+var swipeStartY = 0;
+sheet.addEventListener('touchstart', function(e){ swipeStartY = e.touches[0].clientY; }, { passive: true });
+sheet.addEventListener('touchend', function(e){
+  if (e.changedTouches[0].clientY - swipeStartY > 80) closeSheet();
+}, { passive: true });
 
-    NAV_ITEMS.forEach(function(item) {
-      var btn = document.createElement('button');
-      btn.dataset.view = item.id;
-      btn.innerHTML = item.icon + '<span>' + item.label + '</span>';
-      btn.addEventListener('click', function() {
-        var btns = document.querySelectorAll('.sidebar-nav .sidebar-btn');
-        if (btns[item.idx]) btns[item.idx].click();
-        setActive(item.id);
-        var mc = document.querySelector('.main-col');
-        if (mc) mc.scrollTop = 0;
-      });
-      nav.appendChild(btn);
+function openSheet() {
+  if (!IS_MOBILE) return;
+  populateSheet();
+  sheetBackdrop.classList.add('open');
+  sheet.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSheet() {
+  sheetBackdrop.classList.remove('open');
+  sheet.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function populateSheet() {
+  var catBar = document.getElementById('mob-cat-bar');
+  catBar.innerHTML = '';
+
+  // Get categories from desktop cat tabs
+  var desktopCatBtns = document.querySelectorAll('.cat-tabs button');
+  var activeCatIdx = 0;
+  desktopCatBtns.forEach(function(b, i){
+    if (b.classList.contains('active')) activeCatIdx = i;
+  });
+
+  desktopCatBtns.forEach(function(b, i) {
+    var btn = document.createElement('button');
+    btn.className = 'mob-cat-btn' + (i === activeCatIdx ? ' active' : '');
+    btn.textContent = b.textContent.trim();
+    btn.addEventListener('click', function(){
+      catBar.querySelectorAll('.mob-cat-btn').forEach(function(x){ x.classList.remove('active'); });
+      btn.classList.add('active');
+      b.click(); // click desktop tab
+      setTimeout(renderItems, 80);
     });
+    catBar.appendChild(btn);
+  });
 
-    document.body.appendChild(nav);
-    setActive('floor');
+  renderItems();
+}
 
-    var viewMap = ['floor','reservations','customers','history','summary','admin','settings'];
-    new MutationObserver(function() {
-      var btns = Array.from(document.querySelectorAll('.sidebar-nav .sidebar-btn'));
-      var i = btns.findIndex(function(b){ return b.classList.contains('active'); });
-      if (i >= 0 && viewMap[i]) setActive(viewMap[i]);
-    }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'] });
+function renderItems() {
+  var list = document.getElementById('mob-items-list');
+  list.innerHTML = '';
+  var cards = document.querySelectorAll('.menu-card');
 
-    function setActive(id) {
-      nav.querySelectorAll('button').forEach(function(b) {
-        b.classList.toggle('active', b.dataset.view === id);
-      });
-    }
+  if (cards.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--text-dim)">' +
+      '<div style="font-size:36px;margin-bottom:10px">🍽️</div>' +
+      '<div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">Select a table first</div>' +
+      '<div style="font-size:12px">Go to Floor, tap a table, then open Add Items</div></div>';
+    return;
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     MENU BOTTOM SHEET
-  ═══════════════════════════════════════════════════════════ */
-  function buildMenuSheet() {
-    if (!document.getElementById('mob-add-items-btn')) {
-      var addBtn = document.createElement('button');
-      addBtn.id = 'mob-add-items-btn';
-      addBtn.innerHTML =
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
-        'Add Items to Order';
-      addBtn.addEventListener('click', openSheet);
-      document.body.appendChild(addBtn);
+  cards.forEach(function(card) {
+    var unavail = card.classList.contains('unavailable');
+    var nameEl  = card.querySelector('.menu-name');
+    var priceEl = card.querySelector('.menu-price, .menu-card-foot span');
+    var descEl  = card.querySelector('.menu-desc');
+    var imgEl   = card.querySelector('img');
+
+    var name  = nameEl  ? nameEl.textContent.trim()  : 'Item';
+    var price = priceEl ? priceEl.textContent.trim()  : '';
+    var desc  = descEl  ? descEl.textContent.trim()   : '';
+    var src   = imgEl   ? imgEl.src                   : '';
+
+    // Try to get emoji from category
+    var catIcon = '';
+    var catTabs = document.querySelectorAll('.cat-tabs button.active');
+    if (catTabs[0]) {
+      var catText = catTabs[0].textContent.trim();
+      var emojiMatch = catText.match(/^\p{Emoji}/u);
+      if (emojiMatch) catIcon = emojiMatch[0];
     }
 
-    if (!document.getElementById('mob-menu-sheet')) {
-      var sheet = document.createElement('div');
-      sheet.id = 'mob-menu-sheet';
-      sheet.innerHTML =
-        '<div id="mob-menu-backdrop"></div>' +
-        '<div id="mob-menu-drawer">' +
-          '<div id="mob-menu-drag-handle"></div>' +
-          '<div id="mob-menu-topbar"><h2>Add Items</h2><button id="mob-menu-close">&#x2715;</button></div>' +
-          '<div id="mob-cat-tabs"></div>' +
-          '<div id="mob-menu-scroll"></div>' +
-        '</div>';
-      document.body.appendChild(sheet);
-      document.getElementById('mob-menu-backdrop').addEventListener('click', closeSheet);
-      document.getElementById('mob-menu-close').addEventListener('click', closeSheet);
-      var startY = 0;
-      var drawer = document.getElementById('mob-menu-drawer');
-      drawer.addEventListener('touchstart', function(e){ startY = e.touches[0].clientY; }, { passive: true });
-      drawer.addEventListener('touchend', function(e){
-        if (e.changedTouches[0].clientY - startY > 80) closeSheet();
-      }, { passive: true });
-    }
+    var row = document.createElement('div');
+    row.className = 'mob-item-row' + (unavail ? ' mob-unavail' : '');
+    if (unavail) row.style.opacity = '0.4';
 
-    if (!document.getElementById('mob-add-toast')) {
-      var toast = document.createElement('div');
-      toast.id = 'mob-add-toast';
-      document.body.appendChild(toast);
-    }
+    var imgHTML = src
+      ? '<img class="mob-item-img" src="' + src + '" alt="" loading="lazy">'
+      : '<div class="mob-item-emoji">' + (catIcon || '🍽') + '</div>';
 
-    watchOrderPanel();
-  }
-
-  function watchOrderPanel() {
-    var lastPanel = null;
-    function check() {
-      var panel = document.querySelector('.order-panel');
-      var btn   = document.getElementById('mob-add-items-btn');
-      if (!panel || !btn) return;
-      if (panel === lastPanel && btn.parentElement === panel) return;
-      lastPanel = panel;
-      var totals = panel.querySelector('.totals');
-      if (totals) {
-        panel.insertBefore(btn, totals);
-      } else {
-        var items = panel.querySelector('.order-items');
-        if (items && items.nextSibling) panel.insertBefore(btn, items.nextSibling);
-      }
-    }
-    new MutationObserver(check).observe(document.body, { childList: true, subtree: true });
-    check();
-  }
-
-  function openSheet() {
-    populateSheet();
-    var sheet = document.getElementById('mob-menu-sheet');
-    if (sheet) sheet.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeSheet() {
-    var sheet = document.getElementById('mob-menu-sheet');
-    if (sheet) sheet.classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
-  function populateSheet() {
-    var catTabsEl = document.getElementById('mob-cat-tabs');
-    var scrollEl  = document.getElementById('mob-menu-scroll');
-    catTabsEl.innerHTML = '';
-    scrollEl.innerHTML  = '';
-
-    var desktopCatBtns = document.querySelectorAll(
-      '.cat-tabs button, .menu-tabs button, [class*="cat-tab"] button'
-    );
-    var cats = [];
-    desktopCatBtns.forEach(function(b){
-      var t = b.textContent.trim();
-      if (t && cats.indexOf(t) === -1) cats.push(t);
-    });
-    if (cats.length === 0) cats = ['All'];
-
-    cats.forEach(function(cat, i) {
-      var tb = document.createElement('button');
-      tb.textContent = cat;
-      if (i === 0) tb.classList.add('active');
-      tb.addEventListener('click', function(){
-        catTabsEl.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
-        tb.classList.add('active');
-        desktopCatBtns.forEach(function(b){ if (b.textContent.trim() === cat) b.click(); });
-        setTimeout(function(){ renderItems(scrollEl); }, 120);
-      });
-      catTabsEl.appendChild(tb);
-    });
-
-    renderItems(scrollEl);
-  }
-
-  function renderItems(scrollEl) {
-    scrollEl.innerHTML = '';
-    var cards = document.querySelectorAll(
-      '.menu-card, .menu-item, [class*="menu-card"], [class*="menu-item"]'
-    );
-
-    if (cards.length === 0) {
-      scrollEl.innerHTML =
-        '<div style="text-align:center;padding:48px 20px;color:var(--text-dim,#555e6e)">' +
-          '<div style="font-size:36px;margin-bottom:12px">🍽️</div>' +
-          '<div style="font-size:14px;font-weight:600;color:var(--text,#e2e8f0);margin-bottom:6px">Menu not loaded</div>' +
-          '<div style="font-size:12px">Select a table on the Floor tab first.</div>' +
-        '</div>';
-      return;
-    }
-
-    var shown = 0;
-    cards.forEach(function(card) {
-      var nameEl  = card.querySelector('.menu-name,[class*="menu-name"],h3,h4,strong');
-      var priceEl = card.querySelector('.menu-price,[class*="price"]');
-      var descEl  = card.querySelector('.menu-desc,[class*="desc"],p');
-      var imgEl   = card.querySelector('img');
-      var addEl   = card.querySelector('.menu-add,[class*="add-btn"],[class*="add"]');
-      var is86d   = card.classList.contains('unavail') || card.classList.contains('sold-out') || !!card.querySelector('[class*="86"]');
-
-      var name   = nameEl  ? nameEl.textContent.trim()  : 'Item';
-      var price  = priceEl ? priceEl.textContent.trim() : '';
-      var desc   = descEl  ? descEl.textContent.trim()  : '';
-      var imgSrc = imgEl   ? imgEl.src                  : '';
-
-      var row = document.createElement('div');
-      row.className = 'mob-menu-card' + (is86d ? ' unavail' : '');
-      row.innerHTML =
-        (imgSrc ? '<img class="mob-menu-card-img" src="' + imgSrc + '" alt="' + name + '" loading="lazy"/>'
-                : '<div class="mob-menu-card-img-placeholder">🍽</div>') +
-        '<div class="mob-menu-card-info">' +
-          '<div class="mob-menu-card-name">' + name + (is86d ? '<span class="mob-86d">86\'d</span>' : '') + '</div>' +
-          (desc ? '<div class="mob-menu-card-desc">' + desc + '</div>' : '') +
-          '<div class="mob-menu-card-price">' + price + '</div>' +
+    row.innerHTML = imgHTML +
+      '<div class="mob-item-info">' +
+        '<div class="mob-item-name">' + name +
+          (unavail ? '<span class="mob-item-unavail">86\'d</span>' : '') +
         '</div>' +
-        '<button class="mob-menu-card-add" aria-label="Add ' + name + '">+</button>';
+        (desc ? '<div class="mob-item-desc">' + desc + '</div>' : '') +
+        '<div class="mob-item-price">' + price + '</div>' +
+      '</div>' +
+      (!unavail ? '<button class="mob-item-add" aria-label="Add">+</button>' : '');
 
-      function doAdd() {
-        if (is86d) return;
-        if (addEl) addEl.click();
-        else if (card.querySelector('button')) card.querySelector('button').click();
-        else card.click();
+    if (!unavail) {
+      function doAdd(e) {
+        if (e) e.stopPropagation();
+        // Find and click the + button in the hidden desktop menu card
+        var addBtn = card.querySelector('.menu-add, button[aria-label*="add"], button[aria-label*="Add"]');
+        if (addBtn) {
+          addBtn.click();
+        } else {
+          card.click();
+        }
         showToast(name + ' added');
       }
-
-      row.querySelector('.mob-menu-card-add').addEventListener('click', function(e){ e.stopPropagation(); doAdd(); });
-      row.addEventListener('click', doAdd);
-      scrollEl.appendChild(row);
-      shown++;
-    });
-
-    if (shown === 0) {
-      scrollEl.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text-dim,#555e6e);font-size:12px">No items found</div>';
+      row.querySelector('.mob-item-add').addEventListener('click', doAdd);
+      row.addEventListener('click', function(e) {
+        if (e.target.classList.contains('mob-item-add')) return;
+        doAdd(null);
+      });
     }
-  }
+    list.appendChild(row);
+  });
 
-  var toastTimer = null;
-  function showToast(msg) {
-    var t = document.getElementById('mob-add-toast');
-    if (!t) return;
-    t.textContent = '✓ ' + msg;
-    t.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  if (list.children.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text-dim);font-size:12px">No items in this category</div>';
   }
+}
 
-  /* ── INIT ────────────────────────────────────────────────── */
-  setTimeout(function(){
-    buildNav();
-    buildMenuSheet();
-    scanModals();
-  }, 900);
+// ── 5. ADD ITEMS BUTTON in Order Panel ───────────────────────
+var addItemsBar = document.createElement('button');
+addItemsBar.className = 'mob-add-items-bar';
+addItemsBar.innerHTML = [
+  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  'Add Items to Order'
+].join('');
+addItemsBar.addEventListener('click', openSheet);
+
+function updateAddItemsBar() {
+  if (!IS_MOBILE) return;
+  var panel = document.querySelector('.order-panel');
+  if (!panel) return;
+
+  // Show bar only when floor tab is active and a table is selected
+  var onFloor = currentView === 'floor';
+  var hasTable = !!panel.querySelector('.order-table-num, .order-head-row');
+  addItemsBar.style.display = (onFloor && hasTable) ? 'flex' : 'none';
+
+  // Position: inject before totals or at top of order panel body
+  if (!addItemsBar.parentElement || addItemsBar.parentElement !== panel) {
+    var totals = panel.querySelector('.totals');
+    var items  = panel.querySelector('.order-items');
+    if (totals) panel.insertBefore(addItemsBar, totals);
+    else if (items) panel.insertBefore(addItemsBar, items);
+    else panel.prepend(addItemsBar);
+  }
+}
+
+// Watch for order panel changes
+new MutationObserver(function() {
+  if (IS_MOBILE) updateAddItemsBar();
+}).observe(document.body, { childList: true, subtree: true });
+
+// ── 6. MODAL FIX — ensure footer always visible ───────────────
+function fixModal(modal) {
+  if (!IS_MOBILE) return;
+  if (modal.dataset.mobFixed) return;
+  modal.dataset.mobFixed = '1';
+
+  // Make sure body scrolls and foot is at bottom
+  var body = modal.querySelector('.modal-body');
+  var foot = modal.querySelector('.modal-foot');
+
+  if (body) {
+    body.style.cssText += ';overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1 1 0;max-height:none';
+  }
+  if (foot) {
+    foot.style.cssText += ';flex-shrink:0;position:relative;bottom:auto';
+    // Make all buttons full width
+    foot.querySelectorAll('button, .btn').forEach(function(btn) {
+      btn.style.cssText += ';width:100%;min-height:48px;font-size:14px';
+    });
+  }
+}
+
+new MutationObserver(function(mutations) {
+  if (!IS_MOBILE) return;
+  mutations.forEach(function(m) {
+    m.addedNodes.forEach(function(node) {
+      if (node.nodeType !== 1) return;
+      if (node.classList && node.classList.contains('modal-backdrop')) {
+        var modal = node.querySelector('.modal');
+        if (modal) fixModal(modal);
+      }
+      if (node.classList && node.classList.contains('modal')) {
+        fixModal(node);
+      }
+    });
+  });
+}).observe(document.body, { childList: true, subtree: true });
+
+// ── 7. INIT ───────────────────────────────────────────────────
+function init() {
+  updateAddItemsBar();
+  // Scan for any modals already open
+  document.querySelectorAll('.modal').forEach(fixModal);
+}
+
+setTimeout(init, 800);
+setInterval(function(){ if (IS_MOBILE) updateAddItemsBar(); }, 1000);
 
 })();
