@@ -1211,47 +1211,59 @@ input, select, textarea { font-family: inherit; }
   .dash-body{
     display:flex !important;
     flex-direction:column !important;
-    grid-template-columns:unset !important;
+    overflow-y:auto !important;
+    height:auto !important;
   }
 
-  .dash-center,
+  .dash-center{
+    width:100% !important;
+    order:1 !important;
+    overflow:visible !important;
+  }
+
   .dash-right{
     width:100% !important;
-    max-width:100% !important;
+    order:2 !important;
+    overflow:visible !important;
+    max-height:none !important;
+  }
+
+  .menu-grid{
+    display:grid !important;
+    grid-template-columns:repeat(2,1fr) !important;
   }
 
   .order-panel{
     width:100% !important;
-    border-left:none !important;
+    max-height:none !important;
+    overflow:visible !important;
+  }
+
+  .main-col{
+    overflow-y:auto !important;
   }
 
   .modal{
-    width:100% !important;
-    max-width:100% !important;
-    max-height:95vh !important;
+    width:95vw !important;
+    max-width:95vw !important;
+    height:85vh !important;
+    max-height:85vh !important;
+    display:flex !important;
+    flex-direction:column !important;
   }
 
   .modal-body{
+    flex:1 !important;
     overflow-y:auto !important;
-    padding-bottom:120px !important;
+    min-height:0 !important;
   }
 
   .modal-foot{
+    flex-shrink:0 !important;
     position:sticky !important;
     bottom:0 !important;
     background:#15171a !important;
     z-index:999 !important;
-  }
-
-  .modal-foot .btn{
-    flex:1 !important;
-  }
-
-  .order-actions{
-    position:sticky !important;
-    bottom:0 !important;
-    background:#15171a !important;
-    z-index:100 !important;
   }
 }
 </style>
