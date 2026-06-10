@@ -1,62 +1,58 @@
 // ============================================================
-// MOBILE RESPONSIVE FIX — Inject CSS for screens ≤768px
-// Drop this script AFTER all other scripts in your HTML
+// MOBILE RESPONSIVE FIX v3 — Complete mobile layout fix
 // ============================================================
 
 (function injectMobileStyles() {
   const css = `
-/* ── Reset & base ───────────────────────────────────────────── */
+/* ── Reset ───────────────────────────────────────────────────── */
 * { box-sizing: border-box; }
 
-/* ── Root layout: sidebar + main-col ────────────────────────── */
 @media (max-width: 768px) {
 
-  /* Hide the left sidebar — replaced by bottom nav */
-  .sidebar {
-    display: none !important;
-  }
-
-  /* Root layout — single column */
+  /* ── Root: full-height column, bottom nav at foot ─────────── */
   #root {
     display: flex !important;
     flex-direction: column !important;
-    grid-template-columns: none !important;
     height: 100dvh !important;
     overflow: hidden !important;
+    grid-template-columns: none !important;
+    grid-template-rows: none !important;
   }
 
-  /* Main column takes full width */
+  /* ── Sidebar: hidden, replaced by bottom nav ──────────────── */
+  .sidebar { display: none !important; }
+
+  /* ── Main column: fills space above bottom nav ────────────── */
   .main-col {
-    flex: 1 !important;
+    flex: 1 1 0 !important;
     width: 100% !important;
-    min-width: 0 !important;
-    padding-bottom: 64px !important; /* space for bottom nav */
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
     display: flex !important;
     flex-direction: column !important;
-    min-height: 0 !important;
+    padding-bottom: 0 !important;
+    grid-row: unset !important;
   }
 
-  /* ── Top bar ─────────────────────────────────────────────── */
+  /* ── Topbar ───────────────────────────────────────────────── */
   .topbar {
-    padding: 10px 14px !important;
-    gap: 8px !important;
-    flex-wrap: wrap !important;
-    min-height: unset !important;
     height: auto !important;
+    min-height: 52px !important;
+    padding: 8px 12px !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
     flex-shrink: 0 !important;
   }
-  .page-title-main { font-size: 17px !important; }
-  .page-title-sub  { font-size: 11px !important; display: none !important; }
-  .topbar-right    { gap: 8px !important; flex-wrap: wrap; }
-  .search-box      { width: 100% !important; order: 10; }
+  .page-title-main { font-size: 16px !important; }
+  .page-title-sub  { display: none !important; }
+  .search-box      { display: none !important; }
   .cashier-chip    { display: none !important; }
   .shift-badge     { display: none !important; }
   .clock-date      { display: none !important; }
   .clock-time      { font-size: 13px !important; }
+  .topbar-right    { gap: 8px !important; }
 
-  /* ── Stats strip: 2×2 grid instead of 4-col row ────────────── */
+  /* ── Stats strip: 2×2 grid ────────────────────────────────── */
   .stats-strip {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
@@ -65,371 +61,306 @@
     background: var(--line) !important;
     flex-shrink: 0 !important;
   }
-  .stat-tile {
-    padding: 10px 12px !important;
-  }
-  .stat-tile-value { font-size: 18px !important; }
-  .stat-tile-label { font-size: 9px !important; }
-  .stat-tile-delta { font-size: 10px !important; }
+  .stat-tile        { padding: 10px 12px !important; background: var(--bg-1) !important; }
+  .stat-tile-value  { font-size: 17px !important; }
+  .stat-tile-label  { font-size: 9px !important; }
+  .stat-tile-delta  { font-size: 10px !important; }
 
-  /* ── Tip banner ───────────────────────────────────────────── */
-  .tip-banner {
-    font-size: 12px !important;
-    padding: 10px 12px !important;
-    margin: 8px 12px !important;
-  }
-
-  /* ── Floor view: stack center + right ────────────────────── */
+  /* ── Dashboard body: single scrollable column ─────────────── */
   .dash-body {
+    flex: 1 1 0 !important;
     display: flex !important;
     flex-direction: column !important;
     grid-template-columns: none !important;
-    overflow: visible !important;
-    height: auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
     min-height: 0 !important;
-    background: var(--bg) !important;
     gap: 0 !important;
-    flex: 1 !important;
+    background: var(--bg) !important;
+    padding-bottom: 64px !important;
   }
   .dash-center {
     width: 100% !important;
-    min-width: 0 !important;
-    overflow: visible !important;
     padding: 10px 12px !important;
-    flex: none !important;
+    flex-shrink: 0 !important;
+    overflow: visible !important;
   }
   .dash-right {
     width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    flex-direction: column !important;
+    flex-shrink: 0 !important;
     border-left: none !important;
     border-top: 1px solid var(--line) !important;
+    background: var(--bg-1) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: visible !important;
+    min-height: 0 !important;
+    position: static !important;
   }
 
-  /* ── Floor plan grid: smaller table cards ─────────────────── */
+  /* ── Order panel: let it flow naturally ───────────────────── */
+  .order-panel {
+    width: 100% !important;
+    border-left: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .order-head   { padding: 10px 14px !important; flex-shrink: 0 !important; }
+  .order-items  { overflow: visible !important; max-height: none !important; flex: none !important; }
+  .order-item   { padding: 8px 14px !important; }
+  .totals       { padding: 10px 14px !important; flex-shrink: 0 !important; }
+  .total-row    { font-size: 12px !important; }
+  .grand .val   { font-size: 18px !important; }
+  .order-actions {
+    padding: 10px 14px 14px !important;
+    flex-shrink: 0 !important;
+  }
+  .order-actions .btn { font-size: 12px !important; padding: 10px !important; }
+  .small-input  { width: 50px !important; font-size: 11px !important; }
+  .tax-input    { width: 50px !important; font-size: 11px !important; }
+  .order-table-num { font-size: 18px !important; }
+
+  /* ── Ticker: live activity ────────────────────────────────── */
+  .ticker {
+    padding: 10px 12px !important;
+    max-height: 120px !important;
+    overflow-y: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* ── Floor grid ───────────────────────────────────────────── */
   .floor-grid {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)) !important;
     gap: 8px !important;
-    padding: 0 !important;
   }
-  .table-card {
-    padding: 10px 8px !important;
-    min-width: 0 !important;
-    aspect-ratio: 1.1 !important;
-  }
-  .table-num  { font-size: 18px !important; }
-  .table-cap,
-  .table-waiter,
-  .table-meta { font-size: 9px !important; }
-  .table-total { font-size: 10px !important; }
-  .table-splits { display: none !important; }
+  .table-card   { padding: 8px !important; aspect-ratio: 1.1 !important; }
+  .table-num    { font-size: 16px !important; }
+  .table-cap, .table-waiter, .table-meta { font-size: 9px !important; }
+  .table-total  { font-size: 10px !important; }
   .table-status { font-size: 8px !important; padding: 2px 5px !important; }
 
-  /* ── Menu area ───────────────────────────────────────────── */
-  .menu-area {
-    padding: 0 !important;
-    margin-top: 16px !important;
-  }
+  /* ── Category tabs ────────────────────────────────────────── */
   .cat-tabs {
-    gap: 4px !important;
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
-    padding: 0 0 6px 0 !important;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    padding-bottom: 4px !important;
+    gap: 4px !important;
   }
   .cat-tabs::-webkit-scrollbar { display: none; }
-  .cat-tabs button,
   .cat-tab {
     padding: 6px 10px !important;
     font-size: 11px !important;
     flex-shrink: 0 !important;
   }
-  .menu-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
-    gap: 8px !important;
-  }
+
+  /* ── Menu grid ────────────────────────────────────────────── */
+  .menu-area    { margin-top: 12px !important; }
+  .menu-grid    { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important; gap: 8px !important; }
   .menu-card-body { padding: 8px !important; }
-  .menu-name      { font-size: 12px !important; }
-  .menu-desc      { font-size: 10px !important; display: -webkit-box !important; -webkit-line-clamp: 2 !important; -webkit-box-orient: vertical !important; overflow: hidden !important; }
-  .menu-img       { aspect-ratio: 1.3 !important; }
-  .menu-price     { font-size: 13px !important; }
-  .menu-add       { padding: 5px 10px !important; font-size: 11px !important; }
+  .menu-name    { font-size: 12px !important; }
+  .menu-desc    { font-size: 10px !important; }
+  .menu-img     { aspect-ratio: 1.3 !important; }
+  .menu-price   { font-size: 13px !important; }
 
-  /* ── Section heads ───────────────────────────────────────── */
-  .section-head {
-    padding: 0 0 10px 0 !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-  }
-  .section-title { font-size: 16px !important; }
-  .section-sub { font-size: 11px !important; }
-
-  /* ── Order panel ─────────────────────────────────────────── */
-  .order-panel {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-height: none !important;
-    border-radius: 0 !important;
-    border-left: none !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-  .order-head      { padding: 12px 16px !important; flex-shrink: 0 !important; }
-  .order-table-num { font-size: 18px !important; }
-  .totals {
-    padding: 10px 16px !important;
-    flex-shrink: 0 !important;
-  }
-  .total-row { font-size: 12px !important; }
-  .total-val { font-size: 12px !important; }
-  .grand .val { font-size: 18px !important; }
-  .order-actions {
-    padding: 12px 16px 16px !important;
-    flex-shrink: 0 !important;
-  }
-  .order-actions .btn {
-    font-size: 12px !important;
-    padding: 10px !important;
-  }
-  .order-items { max-height: 240px !important; overflow-y: auto !important; }
-  .order-item  { padding: 8px 16px !important; }
-  .small-input { width: 50px !important; }
-  .tax-input   { width: 50px !important; }
-
-  /* ── Live activity ticker ────────────────────────────────── */
-  .ticker {
-    padding: 10px 12px !important;
-    max-height: 130px !important;
-    overflow-y: auto !important;
-  }
-
-  /* ── Modals: bottom sheet on mobile ──────────────────────── */
-  .modal-backdrop {
-    padding: 0 !important;
-    align-items: flex-end !important;
-  }
-  .modal {
-    width: 100% !important;
-    max-width: 100% !important;
-    border-radius: 20px 20px 0 0 !important;
-    max-height: 90dvh !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
-    margin: 0 !important;
-  }
-  .modal-head {
-    padding: 16px 18px !important;
-    position: sticky !important;
-    top: 0 !important;
-    background: var(--bg-1) !important;
-    z-index: 10 !important;
-    border-bottom: 1px solid var(--line) !important;
-    flex-shrink: 0 !important;
-  }
-  .modal-body {
-    padding: 16px 18px !important;
+  /* ── Workspace (Reservations / Customers / Orders / Admin) ── */
+  .workspace { flex: 1 1 0 !important; overflow: hidden !important; display: flex !important; flex-direction: column !important; min-height: 0 !important; }
+  .workspace-inner {
+    flex: 1 1 0 !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    flex: 1 !important;
+    padding: 12px !important;
+    padding-bottom: 72px !important;
     min-height: 0 !important;
   }
-  .modal-foot {
-    padding: 12px 18px 24px !important;
-    flex-wrap: nowrap !important;
-    gap: 8px !important;
-    position: sticky !important;
-    bottom: 0 !important;
-    background: var(--bg-1) !important;
-    z-index: 10 !important;
-    border-top: 1px solid var(--line) !important;
-    flex-shrink: 0 !important;
-    display: flex !important;
-    justify-content: flex-end !important;
-  }
-  .modal-foot .btn {
-    flex: 1 !important;
-    padding: 12px !important;
-    font-size: 14px !important;
-  }
-  .modal-title { font-size: 16px !important; }
-  .modal-sub { font-size: 11px !important; }
+  .section-head { padding: 0 0 10px 0 !important; flex-wrap: wrap !important; gap: 8px !important; }
+  .section-title { font-size: 16px !important; }
 
-  /* Settings grid inside modals — single column on mobile */
-  .modal .settings-grid,
-  .settings-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .modal .setting-field,
-  .setting-field {
-    grid-column: auto !important;
-  }
-  .modal .setting-field.full,
-  .setting-field.full {
-    grid-column: 1 / -1 !important;
-  }
-  .setting-field input,
-  .setting-field select {
-    font-size: 16px !important; /* prevents iOS zoom on focus */
-    padding: 12px !important;
-  }
+  /* ── Reservation cards ────────────────────────────────────── */
+  .resv-card { grid-template-columns: 60px 1fr !important; gap: 10px !important; padding: 10px !important; }
+  .resv-actions { grid-column: 1 / -1 !important; justify-content: flex-end !important; padding-top: 6px !important; border-top: 1px solid var(--line) !important; margin-top: 4px !important; }
 
-  /* ── Context menu ────────────────────────────────────────── */
-  .ctx-menu {
-    position: fixed !important;
-    bottom: 80px !important;
-    left: 12px !important;
-    right: 12px !important;
-    top: auto !important;
-    width: auto !important;
-    border-radius: 12px !important;
-  }
-  .ctx-item { padding: 12px 16px !important; font-size: 14px !important; }
+  /* ── Customer grid ────────────────────────────────────────── */
+  .cust-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
 
-  /* ── Workspace (other views: reservations, settings, etc) ── */
-  .workspace-inner {
-    padding: 12px !important;
-  }
+  /* ── History ──────────────────────────────────────────────── */
+  .history-row { grid-template-columns: 1fr 1fr !important; gap: 6px !important; padding: 10px 12px !important; font-size: 12px !important; }
+  .history-filters { flex-wrap: wrap !important; gap: 6px !important; }
 
-  /* ── Reservation cards ───────────────────────────────────── */
-  .resv-card {
-    grid-template-columns: 60px 1fr !important;
-    gap: 10px !important;
-    padding: 10px !important;
-  }
-  .resv-actions {
-    grid-column: 1 / -1 !important;
-    justify-content: flex-end !important;
-    padding-top: 6px !important;
-    border-top: 1px solid var(--line) !important;
-    margin-top: 4px !important;
-  }
+  /* ── Summary ──────────────────────────────────────────────── */
+  .summary-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
 
-  /* ── Customer grid ──────────────────────────────────────── */
-  .cust-grid {
-    grid-template-columns: 1fr !important;
-    gap: 8px !important;
-  }
-
-  /* ── History view ───────────────────────────────────────── */
-  .history-row {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 6px !important;
-    padding: 10px 12px !important;
-    font-size: 12px !important;
-  }
-  .history-filters {
-    flex-wrap: wrap !important;
-    gap: 6px !important;
-  }
-
-  /* ── Summary view ──────────────────────────────────────── */
-  .summary-grid {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 8px !important;
-  }
-
-  /* ── Admin panel ───────────────────────────────────────── */
-  /* Admin tab buttons - scroll horizontally */
+  /* ── Admin ────────────────────────────────────────────────── */
   .workspace-inner > div > div:first-child {
     overflow-x: auto !important;
     flex-wrap: nowrap !important;
     -webkit-overflow-scrolling: touch;
   }
+  table  { display: block !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  thead  { display: none !important; }
+  tbody  { display: block !important; }
+  tbody tr  { display: flex !important; flex-wrap: wrap !important; padding: 12px !important; border-bottom: 1px solid var(--line) !important; gap: 8px !important; align-items: center !important; }
+  tbody td  { padding: 0 !important; border: none !important; }
+  tbody td:first-child { flex: 1 1 100% !important; }
+  tbody td:nth-child(4), tbody td:nth-child(5) { flex: 1 !important; }
+  tbody td:last-child { flex: 1 1 100% !important; display: flex !important; justify-content: flex-end !important; }
 
-  /* Admin menu table → stacked cards on mobile */
-  table {
-    display: block !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-  }
-  thead { display: none !important; }
-  tbody { display: block !important; }
-  tbody tr {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    padding: 12px !important;
-    border-bottom: 1px solid var(--line) !important;
-    gap: 8px !important;
-    align-items: center !important;
-  }
-  tbody td {
+  /* ══════════════════════════════════════════════════════════
+     MODALS — Bottom sheet, fully scrollable with sticky footer
+     ══════════════════════════════════════════════════════════ */
+  .modal-backdrop {
     padding: 0 !important;
-    border: none !important;
+    align-items: flex-end !important;
+    place-items: unset !important;
   }
-  /* Item name cell - full width */
-  tbody td:first-child {
-    flex: 1 1 100% !important;
-  }
-  /* Stock and Status cells */
-  tbody td:nth-child(4),
-  tbody td:nth-child(5) {
-    flex: 1 !important;
-  }
-  /* Actions cell */
-  tbody td:last-child {
-    flex: 1 1 100% !important;
+
+  .modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 88dvh !important;
+    height: auto !important;
+    overflow: hidden !important;
     display: flex !important;
-    justify-content: flex-end !important;
+    flex-direction: column !important;
+    margin: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    animation: mobileSheetIn .28s cubic-bezier(.16,1,.3,1) !important;
   }
 
-  /* ── Checkout modal ─────────────────────────────────────── */
-  .pay-methods {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px !important;
-  }
-  .pay-method {
-    padding: 12px 8px !important;
-    font-size: 12px !important;
+  @keyframes mobileSheetIn {
+    from { transform: translateY(100%); opacity: 0.8; }
+    to   { transform: translateY(0);    opacity: 1;   }
   }
 
-  /* ── Notification panel ─────────────────────────────────── */
+  .modal-head {
+    padding: 16px 18px 14px !important;
+    flex-shrink: 0 !important;
+    position: sticky !important;
+    top: 0 !important;
+    background: var(--bg-1) !important;
+    z-index: 2 !important;
+    border-bottom: 1px solid var(--line) !important;
+    /* drag handle */
+    border-top: 3px solid transparent !important;
+    background-clip: padding-box !important;
+  }
+  /* visual drag handle above modal */
+  .modal-head::before {
+    content: '' !important;
+    display: block !important;
+    width: 36px !important;
+    height: 4px !important;
+    background: var(--line-2, #3a3f48) !important;
+    border-radius: 2px !important;
+    margin: 0 auto 12px auto !important;
+  }
+
+  .modal-title { font-size: 17px !important; }
+  .modal-sub   { font-size: 12px !important; }
+
+  .modal-body {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 16px 18px !important;
+  }
+
+  .modal-foot {
+    flex-shrink: 0 !important;
+    display: flex !important;
+    gap: 10px !important;
+    padding: 12px 18px !important;
+    padding-bottom: max(18px, env(safe-area-inset-bottom)) !important;
+    border-top: 1px solid var(--line) !important;
+    background: var(--bg-1) !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 2 !important;
+    justify-content: stretch !important;
+  }
+  .modal-foot .btn {
+    flex: 1 !important;
+    padding: 13px !important;
+    font-size: 14px !important;
+    justify-content: center !important;
+  }
+
+  /* Form fields: single column, large touch targets, no iOS zoom */
+  .settings-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .setting-field { grid-column: auto !important; }
+  .setting-field.full { grid-column: 1 / -1 !important; }
+  .setting-field input,
+  .setting-field select,
+  .setting-field textarea {
+    font-size: 16px !important;   /* prevents iOS auto-zoom */
+    padding: 13px 12px !important;
+    width: 100% !important;
+  }
+  .setting-field label { font-size: 11px !important; }
+
+  /* ── Checkout modal pay methods ───────────────────────────── */
+  .pay-methods { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+  .pay-method  { padding: 12px 8px !important; font-size: 12px !important; }
+  .quick-cash  { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* ── Context menu ─────────────────────────────────────────── */
+  .ctx-menu {
+    position: fixed !important;
+    bottom: 72px !important;
+    left: 12px !important; right: 12px !important;
+    top: auto !important; width: auto !important;
+    border-radius: 12px !important;
+    z-index: 500 !important;
+  }
+  .ctx-item { padding: 12px 16px !important; font-size: 14px !important; }
+
+  /* ── Notification panel ───────────────────────────────────── */
   .notif-panel {
     position: fixed !important;
-    top: auto !important;
-    bottom: 72px !important;
-    left: 8px !important;
-    right: 8px !important;
-    width: auto !important;
-    max-height: 60vh !important;
+    top: auto !important; bottom: 72px !important;
+    left: 8px !important; right: 8px !important;
+    width: auto !important; max-height: 60vh !important;
     border-radius: 14px !important;
+    z-index: 400 !important;
   }
 
-  /* ── Toast: above bottom nav ─────────────────────────────── */
+  /* ── Toast: above bottom nav ──────────────────────────────── */
   .toast {
-    bottom: 80px !important;
+    bottom: 76px !important;
     max-width: calc(100vw - 32px) !important;
-    text-align: center !important;
     font-size: 12px !important;
   }
 
-  /* ── Bottom nav — replaces sidebar on mobile ─────────────── */
-  .mobile-bottom-nav {
-    display: flex !important;
-  }
+  /* ── Bottom nav: always visible ───────────────────────────── */
+  .mobile-bottom-nav { display: flex !important; }
+  .mobile-table-back-btn { display: flex !important; }
 
-  /* ── Mobile back button for table selection ──────────────── */
-  .mobile-table-back-btn {
-    display: flex !important;
-  }
-
-  /* ── Scrollbar thin on mobile ────────────────────────────── */
+  /* ── Thin scrollbars ──────────────────────────────────────── */
   ::-webkit-scrollbar { width: 2px !important; height: 2px !important; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
 }
 
-/* ── Bottom nav base (hidden on desktop) ─────────────────────── */
+/* ════════════════════════════════════════════════════════════
+   BOTTOM NAV — base styles (hidden on desktop, shown on mobile)
+   ════════════════════════════════════════════════════════════ */
 .mobile-bottom-nav {
   display: none;
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 200;
+  bottom: 0; left: 0; right: 0;
+  z-index: 300;
   background: var(--bg-2, #1a1d22);
   border-top: 1px solid var(--line, #2a2e35);
   height: 64px;
@@ -465,17 +396,10 @@
   color: var(--amber, #f59e0b);
   background: var(--amber-soft, rgba(245,158,11,0.1));
 }
-.mobile-bottom-nav button svg {
-  width: 22px;
-  height: 22px;
-}
+.mobile-bottom-nav button svg { width: 22px; height: 22px; }
 .mobile-bottom-nav .pulse {
-  position: absolute;
-  top: 8px;
-  right: calc(50% - 14px);
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+  position: absolute; top: 8px; right: calc(50% - 14px);
+  width: 6px; height: 6px; border-radius: 50%;
   background: var(--amber, #f59e0b);
   animation: pulse-anim 1.4s infinite;
 }
@@ -484,47 +408,38 @@
   50%       { opacity: 0.5; transform: scale(1.4); }
 }
 
-/* ── Mobile back button (hidden on desktop) ──────────────────── */
+/* Mobile back button */
 .mobile-table-back-btn {
   display: none;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-dim);
-  background: var(--bg-2);
-  border: 1px solid var(--line);
-  cursor: pointer;
+  align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 8px;
+  font-size: 12px; font-weight: 600;
+  color: var(--text-dim); background: var(--bg-2);
+  border: 1px solid var(--line); cursor: pointer;
   transition: all .15s;
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 5;
+  position: absolute; top: 12px; right: 12px; z-index: 5;
 }
-.mobile-table-back-btn:hover {
-  color: var(--text);
-  background: var(--bg-3);
-}
+.mobile-table-back-btn:hover { color: var(--text); background: var(--bg-3); }
 `;
 
   const style = document.createElement('style');
   style.id = 'mobile-responsive-fix';
+  // Remove any previous injection
+  const prev = document.getElementById('mobile-responsive-fix');
+  if (prev) prev.remove();
   style.textContent = css;
   document.head.appendChild(style);
 
-  // ── Inject mobile bottom navigation ──────────────────────────
-  // Wait for React to mount, then wire up bottom nav
+  // ── Bottom navigation ─────────────────────────────────────────
   function injectBottomNav() {
     if (document.getElementById('mobile-bottom-nav')) return;
 
     const NAV = [
-      { id: 'floor',        icon: 'grid',    label: 'Floor'     },
-      { id: 'reservations', icon: 'clock',   label: 'Reserve'   },
-      { id: 'customers',    icon: 'users',   label: 'Guests'    },
-      { id: 'history',      icon: 'history', label: 'Orders'    },
-      { id: 'admin',        icon: 'chef',    label: 'Admin'     },
+      { id: 'floor',        icon: 'grid',    label: 'Floor'   },
+      { id: 'reservations', icon: 'clock',   label: 'Reserve' },
+      { id: 'customers',    icon: 'users',   label: 'Guests'  },
+      { id: 'history',      icon: 'history', label: 'Orders'  },
+      { id: 'admin',        icon: 'chef',    label: 'Admin'   },
     ];
 
     const ICONS = {
@@ -544,12 +459,9 @@
       btn.dataset.view = item.id;
       btn.innerHTML = (ICONS[item.icon] || '') + `<span>${item.label}</span>`;
       btn.addEventListener('click', () => {
-        // Find the matching sidebar button and click it
         const allNavBtns = document.querySelectorAll('.sidebar-nav .sidebar-btn');
-        // Map our nav to sidebar order: floor=0, reservations=1, customers=2, history=3, admin=5
         const sidebarIndex = { floor:0, reservations:1, customers:2, history:3, admin:5 }[item.id];
         if (allNavBtns[sidebarIndex]) allNavBtns[sidebarIndex].click();
-
         updateActive(item.id);
       });
       nav.appendChild(btn);
@@ -563,11 +475,10 @@
       });
     }
 
-    // Sync active state by watching sidebar button active class
+    // Sync with sidebar active state
     const observer = new MutationObserver(() => {
       const activeSidebar = document.querySelector('.sidebar-btn.active');
       if (activeSidebar) {
-        // Find which NAV item corresponds
         const sidebarBtns = [...document.querySelectorAll('.sidebar-nav .sidebar-btn')];
         const idx = sidebarBtns.indexOf(activeSidebar);
         const viewMap = ['floor','reservations','customers','history','summary','admin','settings'];
@@ -577,10 +488,9 @@
     });
     observer.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'] });
 
-    updateActive('floor'); // default
+    updateActive('floor');
   }
 
-  // Inject bottom nav after React renders
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => setTimeout(injectBottomNav, 600));
   } else {
