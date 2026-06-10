@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { id: "customers", icon: "users", label: "Customers" },
   { id: "history", icon: "history", label: "Orders" },
   { id: "summary", icon: "chart", label: "Analytics" },
+  { id: "admin", icon: "chef", label: "Admin" },
   { id: "settings", icon: "gear", label: "Settings" },
 ];
 
@@ -24,6 +25,7 @@ function App() {
   const [menuItems, setMenuItems] = React.useState(
     (saved?.menuVersion === MENU_VERSION && saved?.menuItems) ? saved.menuItems : MENU_ITEMS
   );
+  const [categories, setCategories] = React.useState(saved?.categories || MENU_CATEGORIES);
   const [orders, setOrders] = React.useState(saved?.orders || []);
   const [events, setEvents] = React.useState(saved?.events || []);
   const [reservations, setReservations] = React.useState(saved?.reservations || seedReservations());
@@ -62,12 +64,12 @@ function App() {
   }, []);
 
   React.useEffect(() => {
-    const state = { settings, tables, menuItems, orders, events, reservations, customers, notifications, tipDismissed, menuVersion: MENU_VERSION };
+    const state = { settings, tables, menuItems, categories, orders, events, reservations, customers, notifications, tipDismissed, menuVersion: MENU_VERSION };
     saveState(state);
     if (window.supabaseClient) {
       window.pushStateToSupabase(state);
     }
-  }, [settings, tables, menuItems, orders, events, reservations, customers, notifications, tipDismissed]);
+  }, [settings, tables, menuItems, categories, orders, events, reservations, customers, notifications, tipDismissed]);
 
   // Generate notifications from state
   React.useEffect(() => {
@@ -170,6 +172,7 @@ function App() {
     customers: { main: "Customers & Loyalty", sub: "Regulars, tiers, and rewards" },
     history: { main: "Orders", sub: "All transactions from this session" },
     summary: { main: "Analytics", sub: `${formatDate(now)} · ${getShift(now)} shift` },
+    admin: { main: "Admin Panel", sub: "Manage menu items, categories & inventory" },
     settings: { main: "Settings", sub: "Configure restaurant & POS behaviour" },
   }[view];
 
@@ -275,7 +278,7 @@ function App() {
                 </div>
               )}
               <FloorPlan tables={tables} selectedId={selectedId} onSelect={selectTable} onContext={(e, t) => setCtx({ x: e.clientX, y: e.clientY, table: t })} settings={settings} getTableTotal={getTableTotal}/>
-              <MenuGrid items={filteredMenu} categories={MENU_CATEGORIES} activeCat={activeCat} onCat={setActiveCat} onAdd={addItemToOrder} canAdd={!!selectedTable} currency={settings.currency} onToggleAvail={toggleAvail}/>
+              <MenuGrid items={filteredMenu} categories={categories} activeCat={activeCat} onCat={setActiveCat} onAdd={addItemToOrder} canAdd={!!selectedTable} currency={settings.currency} onToggleAvail={toggleAvail}/>
             </div>
             <div className="dash-right">
               <OrderPanel selectedTable={selectedTable} onUpdateTable={updateTable} settings={settings} onOpenCheckout={() => setModal({ type: "checkout" })} onOpenKOT={() => setModal({ type: "kot" })} onSaveDraft={saveDraft}/>
@@ -298,6 +301,7 @@ function App() {
             <div className="workspace-inner" style={{maxWidth: 1200, margin:'0 auto', width:'100%'}}>
               {view === "reservations" && <ReservationsView reservations={reservations} tables={tables} onCheckIn={seatReservation} onCancel={(r) => { setReservations(prev => prev.map(x => x.id === r.id ? {...x, status:"cancelled"} : x)); showToast("Reservation cancelled"); }} onAdd={() => setModal({ type: "new-res" })}/>}
               {view === "customers" && <CustomersView customers={customers} onAdd={() => { const name = prompt("Customer name?"); if (!name) return; setCustomers(prev => [...prev, { id: uid("cus"), name, phone: "", visits: 0, spent: 0, points: 0, tier: "Bronze", last: "Just now" }]); showToast(`${name} added`); }}/>}
+              {view === "admin" && <AdminPanel menuItems={menuItems} setMenuItems={setMenuItems} categories={categories} setCategories={setCategories} orders={orders} settings={settings} showToast={showToast}/>}
               {view === "history" && <HistoryView orders={orders} settings={settings} onReprint={(o) => setModal({ type: "receipt", order: o })}/>}
               {view === "summary" && <SummaryView orders={orders} settings={settings}/>}
               {view === "settings" && <SettingsView settings={settings} onChange={setSettings} onResetTables={handleResetTables}/>}
