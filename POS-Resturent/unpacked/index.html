@@ -5074,7 +5074,9 @@ const UserBadge = ({ user, onLogout }) => (
 
 ReactDOM.createRoot(document.getElementById("root")).render(<AppRoot/>);
 function AppRoot() {
-  ...
+  const [authUser, setAuthUser] = React.useState(() => loadAuth());
+  if (!authUser) return <LoginScreen onLogin={setAuthUser}/>;
+  return <App authUser={authUser} onLogout={() => { clearAuth(); setAuthUser(null); }} />;
 }
 </script>
 
