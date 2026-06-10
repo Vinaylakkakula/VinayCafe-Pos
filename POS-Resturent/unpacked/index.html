@@ -1088,14 +1088,19 @@ input, select, textarea { font-family: inherit; }
 .method-split-bar > div { height: 100%; transition: width .3s; }
 .method-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--text-dim); }
 
-/* Print */
+/* Print — thermal receipt only */
 @media print {
-  body { background: #fff; }
-  .no-print { display: none !important; }
-  .modal-backdrop { position: static; background: #fff; backdrop-filter: none; display: block; }
-  .modal { box-shadow: none; border: none; max-width: none; max-height: none; background: #fff; }
-  .modal-body { overflow: visible; padding: 0; }
-  .receipt, .kot { box-shadow: none; }
+  body * { visibility: hidden !important; }
+  .print-target, .print-target * { visibility: visible !important; }
+  .print-target {
+    position: fixed !important;
+    top: 0 !important; left: 0 !important;
+    width: 80mm !important;
+    margin: 0 !important; padding: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+  @page { size: 80mm auto; margin: 4mm; }
 }
 
 /* Utility */
@@ -2272,25 +2277,86 @@ Object.assign(window, { OrderPanel });
 /* ── [6] Modals ── */
 // Modals: KOT, Checkout, Receipt, Waiter assign
 
+const KOT_ADDONS = [
+  { id:"xs",  label:"Extra Spicy",   icon:"🌶️" },
+  { id:"ms",  label:"Medium Spicy",  icon:"🌶" },
+  { id:"ns",  label:"No Spice",      icon:"❄️" },
+  { id:"lg",  label:"Less Gravy",    icon:"💧" },
+  { id:"eg",  label:"Extra Gravy",   icon:"🫙" },
+  { id:"no",  label:"No Onion",      icon:"🚫" },
+  { id:"ng",  label:"No Garlic",     icon:"🧄" },
+  { id:"xc",  label:"Extra Crispy",  icon:"🔥" },
+  { id:"lc",  label:"Less Oil",      icon:"🫒" },
+  { id:"vs",  label:"No Salt",       icon:"🧂" },
+];
+
 const KOTModal = ({ table, split, onClose }) => {
   const now = new Date();
-  const printKot = () => {
-    document.body.classList.add("print-kot");
-    window.print();
-    setTimeout(() => document.body.classList.remove("print-kot"), 100);
+  // itemAddons: { [itemIdx]: Set of addon ids }
+  const [itemAddons, setItemAddons] = React.useState(() => {
+    const init = {};
+    split.items.forEach((_, i) => { init[i] = new Set(); });
+    return init;
+  });
+  const kotRef = React.useRef(null);
+
+  const toggleAddon = (itemIdx, addonId) => {
+    setItemAddons(prev => {
+      const next = { ...prev };
+      const s = new Set(next[itemIdx]);
+      if (s.has(addonId)) s.delete(addonId); else s.add(addonId);
+      next[itemIdx] = s;
+      return next;
+    });
   };
+
+  const printKot = () => {
+    if (kotRef.current) kotRef.current.classList.add("print-target");
+    window.print();
+    setTimeout(() => { if (kotRef.current) kotRef.current.classList.remove("print-target"); }, 500);
+  };
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" style={{width: 420}} onClick={(e)=>e.stopPropagation()}>
+      <div className="modal" style={{width: 460}} onClick={(e)=>e.stopPropagation()}>
         <div className="modal-head no-print">
           <div>
             <div className="modal-title">Kitchen Order Ticket</div>
-            <div className="modal-sub">Preview before sending to kitchen printer</div>
+            <div className="modal-sub">Add addons per item, then print to kitchen</div>
           </div>
           <button className="modal-close" onClick={onClose}><Icon name="x"/></button>
         </div>
-        <div className="modal-body" style={{background:'#2a2f36', display:'grid', placeItems:'center'}}>
-          <div className="kot">
+        <div className="modal-body" style={{background:'#2a2f36', display:'grid', placeItems:'center', gap:12, padding:'16px'}}>
+          {/* Addon editor — screen only */}
+          <div className="no-print" style={{width:'100%', background:'#1e2329', borderRadius:8, padding:12}}>
+            <div style={{fontSize:11, color:'var(--text-dim)', marginBottom:8, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.05em'}}>Item Addons / Special Instructions</div>
+            {split.items.map((item, idx) => (
+              <div key={idx} style={{marginBottom:10, paddingBottom:10, borderBottom:'1px solid #2e3440'}}>
+                <div style={{fontSize:13, fontWeight:600, color:'var(--text-primary)', marginBottom:6}}>
+                  {item.qty}× {item.name}
+                </div>
+                <div style={{display:'flex', flexWrap:'wrap', gap:4}}>
+                  {KOT_ADDONS.map(a => {
+                    const active = itemAddons[idx]?.has(a.id);
+                    return (
+                      <button key={a.id} onClick={() => toggleAddon(idx, a.id)}
+                        style={{
+                          padding:'3px 8px', borderRadius:20, fontSize:11, cursor:'pointer', border:'1px solid',
+                          borderColor: active ? 'var(--accent)' : '#3a4050',
+                          background: active ? 'rgba(249,168,37,0.15)' : 'transparent',
+                          color: active ? 'var(--accent)' : 'var(--text-dim)',
+                          transition:'all .15s'
+                        }}>
+                        {a.icon} {a.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* KOT print preview */}
+          <div ref={kotRef} className="kot">
             <div className="kot-head">
               <div className="kot-title">KOT</div>
               <div style={{fontSize:11, marginTop:2}}>KITCHEN ORDER TICKET</div>
@@ -2301,22 +2367,26 @@ const KOTModal = ({ table, split, onClose }) => {
             <div className="kot-meta"><span>DATE</span><span>{now.toLocaleDateString()}</span></div>
             <div className="kot-meta"><span>SPLIT</span><span>{split.label}</span></div>
             <div style={{borderTop:'2px dashed #000', margin:'8px 0'}}/>
-            {split.items.map((item, idx) => (
-              <div key={idx} className="kot-item">
-                <div className="kot-item-row">
-                  <span>{item.name}</span>
-                  <span>× {item.qty}</span>
+            {split.items.map((item, idx) => {
+              const addons = [...(itemAddons[idx] || [])].map(id => KOT_ADDONS.find(a=>a.id===id)?.label).filter(Boolean);
+              return (
+                <div key={idx} className="kot-item">
+                  <div className="kot-item-row">
+                    <span>{item.name}</span>
+                    <span>× {item.qty}</span>
+                  </div>
+                  {addons.length > 0 && <div className="kot-note">🔧 {addons.join(", ")}</div>}
+                  {item.note && <div className="kot-note">» {item.note}</div>}
                 </div>
-                {item.note && <div className="kot-note">» {item.note}</div>}
-              </div>
-            ))}
+              );
+            })}
             <div className="kot-foot">— END OF TICKET —</div>
           </div>
         </div>
         <div className="modal-foot no-print">
           <button className="btn btn-ghost" onClick={onClose}>Close</button>
           <button className="btn btn-primary" onClick={printKot}>
-            <Icon name="print" size={14}/> Print & Send
+            <Icon name="print" size={14}/> Print & Send to Kitchen
           </button>
         </div>
       </div>
@@ -2478,8 +2548,11 @@ const CheckoutModal = ({ table, split, totals, settings, onClose, onConfirm }) =
 };
 
 const ReceiptModal = ({ order, settings, onClose }) => {
+  const receiptRef = React.useRef(null);
   const doPrint = () => {
+    if (receiptRef.current) receiptRef.current.classList.add("print-target");
     window.print();
+    setTimeout(() => { if (receiptRef.current) receiptRef.current.classList.remove("print-target"); }, 500);
   };
   const split = order.split;
   const totals = order.totals;
@@ -2497,7 +2570,7 @@ const ReceiptModal = ({ order, settings, onClose }) => {
           <button className="modal-close" onClick={onClose}><Icon name="x"/></button>
         </div>
         <div className="modal-body" style={{background:'#2a2f36', display:'grid', placeItems:'center'}}>
-          <div className="receipt">
+          <div ref={receiptRef} className="receipt">
             <div className="receipt-head">
               <div className="receipt-name">{settings.restaurantName}</div>
               <div className="receipt-addr">
@@ -4453,7 +4526,8 @@ const NAV_ITEMS = [
   { id: "settings", icon: "gear", label: "Settings" },
 ];
 
-function App() {
+function App({ authUser, onLogout }) {
+  const perms = ROLE_PERMS[authUser?.role] || ROLE_PERMS["Waiter"];
   const saved = loadState();
   const [settings, setSettings] = React.useState(saved?.settings || DEFAULT_SETTINGS);
   const [tables, setTables] = React.useState(saved?.tables || buildInitialTables(DEFAULT_SETTINGS.tableCount));
@@ -4631,7 +4705,7 @@ function App() {
       <aside className="sidebar no-print">
         <div className="sidebar-brand">E</div>
         <nav className="sidebar-nav">
-          {NAV_ITEMS.map(item => (
+          {NAV_ITEMS.filter(item => perms[item.id] !== false).map(item => (
             <button key={item.id} className={`sidebar-btn ${view === item.id ? "active" : ""}`} onClick={() => setView(item.id)} title={item.label}>
               <Icon name={item.icon} size={18}/>
               {item.id === "reservations" && reservations.filter(r => r.status==="confirmed" && r.ts - Date.now() < 60*60*1000 && r.ts > Date.now()).length > 0 && <span className="pulse"/>}
@@ -4641,11 +4715,9 @@ function App() {
           ))}
         </nav>
         <div className="sidebar-spacer"/>
-        <button className="sidebar-btn" title={settings.cashierName}>
-          <div style={{width:28, height:28, borderRadius:'50%', background:'var(--bg-3)', display:'grid', placeItems:'center', fontSize:10, fontWeight:700, color:'var(--amber)'}}>
-            {settings.cashierName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()}
-          </div>
-          <span className="sidebar-label">{settings.cashierName}</span>
+        <button className="sidebar-btn" title="Logout" onClick={onLogout} style={{color:'var(--red)'}}>
+          <Icon name="x" size={18}/>
+          <span className="sidebar-label">Logout</span>
         </button>
       </aside>
 
@@ -4675,10 +4747,7 @@ function App() {
               <div className="clock-time">{formatTime(now)}</div>
               <div className="clock-date">{formatDate(now)}</div>
             </div>
-            <div className="cashier-chip">
-              <div className="avatar">{settings.cashierName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()}</div>
-              <span>{settings.cashierName}</span>
-            </div>
+            <UserBadge user={authUser} onLogout={onLogout}/>
           </div>
         </div>
 
@@ -4768,7 +4837,163 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+
+// ============================================================
+// AUTH SYSTEM
+// ============================================================
+
+const AUTH_KEY = "ember_pos_auth";
+const AUTH_USERS = [
+  { username: "admin",   password: "admin123",   role: "Admin",   name: "Admin User",    color: "#f9a825" },
+  { username: "manager", password: "mgr2024",    role: "Manager", name: "Manager",       color: "#42a5f5" },
+  { username: "cashier", password: "cash2024",   role: "Cashier", name: "Cashier",       color: "#66bb6a" },
+  { username: "waiter",  password: "wait2024",   role: "Waiter",  name: "Waiter",        color: "#ab47bc" },
+];
+
+// Role permissions: what each role can access
+const ROLE_PERMS = {
+  Admin:   { floor:true, reservations:true, customers:true, history:true, summary:true, admin:true,  settings:true  },
+  Manager: { floor:true, reservations:true, customers:true, history:true, summary:true, admin:false, settings:true  },
+  Cashier: { floor:true, reservations:false,customers:true, history:true, summary:false,admin:false, settings:false },
+  Waiter:  { floor:true, reservations:true, customers:false,history:false,summary:false,admin:false, settings:false },
+};
+
+function loadAuth() {
+  try { const r = sessionStorage.getItem(AUTH_KEY); return r ? JSON.parse(r) : null; } catch { return null; }
+}
+function saveAuth(user) { try { sessionStorage.setItem(AUTH_KEY, JSON.stringify(user)); } catch {} }
+function clearAuth()    { try { sessionStorage.removeItem(AUTH_KEY); } catch {} }
+
+const LoginScreen = ({ onLogin }) => {
+  const [username, setUsername] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [showPw,   setShowPw]   = React.useState(false);
+  const [error,    setError]    = React.useState("");
+  const [loading,  setLoading]  = React.useState(false);
+
+  const handleLogin = () => {
+    setError(""); setLoading(true);
+    setTimeout(() => {
+      const u = AUTH_USERS.find(u => u.username === username.trim().toLowerCase() && u.password === password);
+      if (u) { saveAuth(u); onLogin(u); }
+      else { setError("Invalid username or password."); setLoading(false); }
+    }, 400);
+  };
+
+  const handleKey = (e) => { if (e.key === "Enter") handleLogin(); };
+
+  return (
+    <div style={{
+      minHeight:"100vh", background:"#13171c", display:"flex", alignItems:"center", justifyContent:"center",
+      fontFamily:"Inter, sans-serif"
+    }}>
+      <div style={{
+        background:"#1a1f27", border:"1px solid #2a2f3a", borderRadius:16, padding:"40px 36px",
+        width:360, boxShadow:"0 20px 60px rgba(0,0,0,0.5)"
+      }}>
+        {/* Logo / Brand */}
+        <div style={{textAlign:"center", marginBottom:32}}>
+          <div style={{
+            width:56, height:56, borderRadius:14, background:"linear-gradient(135deg,#f9a825,#ff6f00)",
+            display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, margin:"0 auto 12px"
+          }}>🍽️</div>
+          <div style={{fontSize:22, fontWeight:700, color:"#fff"}}>Vinay Cafe</div>
+          <div style={{fontSize:12, color:"#6b7280", marginTop:4}}>Point of Sale — Staff Login</div>
+        </div>
+
+        {/* Fields */}
+        <div style={{marginBottom:16}}>
+          <label style={{fontSize:12, color:"#9ca3af", display:"block", marginBottom:6}}>Username</label>
+          <input
+            value={username} onChange={e=>setUsername(e.target.value)} onKeyDown={handleKey}
+            placeholder="Enter your username"
+            style={{
+              width:"100%", padding:"10px 12px", background:"#0f1318", border:"1px solid #2e3440",
+              borderRadius:8, color:"#fff", fontSize:14, outline:"none", boxSizing:"border-box",
+              transition:"border .2s"
+            }}
+            onFocus={e=>e.target.style.borderColor="#f9a825"} onBlur={e=>e.target.style.borderColor="#2e3440"}
+          />
+        </div>
+        <div style={{marginBottom:8}}>
+          <label style={{fontSize:12, color:"#9ca3af", display:"block", marginBottom:6}}>Password</label>
+          <div style={{position:"relative"}}>
+            <input
+              type={showPw?"text":"password"} value={password}
+              onChange={e=>setPassword(e.target.value)} onKeyDown={handleKey}
+              placeholder="Enter your password"
+              style={{
+                width:"100%", padding:"10px 36px 10px 12px", background:"#0f1318", border:"1px solid #2e3440",
+                borderRadius:8, color:"#fff", fontSize:14, outline:"none", boxSizing:"border-box",
+                transition:"border .2s"
+              }}
+              onFocus={e=>e.target.style.borderColor="#f9a825"} onBlur={e=>e.target.style.borderColor="#2e3440"}
+            />
+            <button onClick={()=>setShowPw(p=>!p)} style={{
+              position:"absolute", right:10, top:"50%", transform:"translateY(-50%)",
+              background:"none", border:"none", cursor:"pointer", color:"#6b7280", fontSize:13
+            }}>{showPw?"🙈":"👁"}</button>
+          </div>
+        </div>
+
+        {error && <div style={{color:"#f87171", fontSize:12, marginBottom:12, padding:"8px 10px", background:"rgba(248,113,113,0.1)", borderRadius:6}}>{error}</div>}
+
+        <button onClick={handleLogin} disabled={loading || !username || !password} style={{
+          width:"100%", padding:"11px", background: (!username||!password||loading) ? "#2e3440" : "linear-gradient(135deg,#f9a825,#ff8f00)",
+          border:"none", borderRadius:8, color: (!username||!password||loading) ? "#6b7280" : "#000",
+          fontSize:14, fontWeight:700, cursor: (!username||!password||loading) ? "not-allowed" : "pointer",
+          marginTop:4, transition:"all .2s"
+        }}>
+          {loading ? "Signing in…" : "Sign In"}
+        </button>
+
+        {/* Quick role hint for demo */}
+        <div style={{marginTop:20, borderTop:"1px solid #2a2f3a", paddingTop:16}}>
+          <div style={{fontSize:11, color:"#4b5563", marginBottom:8, textAlign:"center"}}>Demo Accounts</div>
+          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:6}}>
+            {AUTH_USERS.map(u => (
+              <button key={u.username} onClick={()=>{setUsername(u.username);setPassword(u.password);setError("");}}
+                style={{
+                  padding:"6px 8px", background:"#0f1318", border:`1px solid ${u.color}22`,
+                  borderRadius:6, cursor:"pointer", textAlign:"left"
+                }}>
+                <div style={{fontSize:11, color:u.color, fontWeight:600}}>{u.role}</div>
+                <div style={{fontSize:10, color:"#6b7280"}}>{u.username}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const UserBadge = ({ user, onLogout }) => (
+  <div style={{display:"flex", alignItems:"center", gap:8}}>
+    <div style={{
+      width:28, height:28, borderRadius:"50%", background:user.color,
+      display:"flex", alignItems:"center", justifyContent:"center",
+      fontSize:12, fontWeight:700, color:"#000"
+    }}>{user.name[0]}</div>
+    <div style={{lineHeight:1.3}}>
+      <div style={{fontSize:12, color:"#fff", fontWeight:600}}>{user.name}</div>
+      <div style={{fontSize:10, color:"#6b7280"}}>{user.role}</div>
+    </div>
+    <button onClick={onLogout} title="Logout" style={{
+      marginLeft:4, background:"none", border:"1px solid #3a4050", borderRadius:6,
+      padding:"3px 8px", cursor:"pointer", color:"#9ca3af", fontSize:11
+    }}>Logout</button>
+  </div>
+);
+
+ReactDOM.createRoot(document.getElementById("root")).render(<AppRoot/>);
+
+function AppRoot() {
+  const [authUser, setAuthUser] = React.useState(() => loadAuth());
+  if (!authUser) return <LoginScreen onLogin={setAuthUser}/>;
+  return <App authUser={authUser} onLogout={() => { clearAuth(); setAuthUser(null); }} />;
+}
+
 
 
 </script>
