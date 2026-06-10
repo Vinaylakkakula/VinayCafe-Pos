@@ -1205,6 +1205,56 @@ input, select, textarea { font-family: inherit; }
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 </style>
+<style>
+@media (max-width:768px){
+
+  .dash-body{
+    display:flex !important;
+    flex-direction:column !important;
+    grid-template-columns:unset !important;
+  }
+
+  .dash-center,
+  .dash-right{
+    width:100% !important;
+    max-width:100% !important;
+  }
+
+  .order-panel{
+    width:100% !important;
+    border-left:none !important;
+  }
+
+  .modal{
+    width:100% !important;
+    max-width:100% !important;
+    max-height:95vh !important;
+  }
+
+  .modal-body{
+    overflow-y:auto !important;
+    padding-bottom:120px !important;
+  }
+
+  .modal-foot{
+    position:sticky !important;
+    bottom:0 !important;
+    background:#15171a !important;
+    z-index:999 !important;
+  }
+
+  .modal-foot .btn{
+    flex:1 !important;
+  }
+
+  .order-actions{
+    position:sticky !important;
+    bottom:0 !important;
+    background:#15171a !important;
+    z-index:100 !important;
+  }
+}
+</style>
 <style>/* Additional styles for dashboard enhancements */
 
 /* Menu card with image */
