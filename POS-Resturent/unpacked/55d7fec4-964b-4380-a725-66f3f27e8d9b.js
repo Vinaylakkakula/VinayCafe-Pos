@@ -18,7 +18,7 @@ const NAV_ITEMS = [
   { id: "settings", icon: "gear", label: "Settings" },
 ];
 
-function App() {
+function App({ authUser, onLogout }) {
   const saved = loadState();
   const [settings, setSettings] = React.useState(saved?.settings || DEFAULT_SETTINGS);
   const [tables, setTables] = React.useState(saved?.tables || buildInitialTables(DEFAULT_SETTINGS.tableCount));
@@ -229,10 +229,14 @@ function App() {
               <div className="clock-time">{formatTime(now)}</div>
               <div className="clock-date">{formatDate(now)}</div>
             </div>
-            <div className="cashier-chip">
-              <div className="avatar">{settings.cashierName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()}</div>
-              <span>{settings.cashierName}</span>
-            </div>
+            {authUser && window._authUtils?.UserBadge ? (
+              <window._authUtils.UserBadge user={authUser} onLogout={onLogout || (() => {})}/>
+            ) : (
+              <div className="cashier-chip">
+                <div className="avatar">{settings.cashierName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()}</div>
+                <span>{settings.cashierName}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -300,7 +304,7 @@ function App() {
           <div className="workspace" style={{flex:1, minHeight:0, background:'var(--bg)'}}>
             <div className="workspace-inner" style={{maxWidth: 1200, margin:'0 auto', width:'100%'}}>
               {view === "reservations" && <ReservationsView reservations={reservations} tables={tables} onCheckIn={seatReservation} onCancel={(r) => { setReservations(prev => prev.map(x => x.id === r.id ? {...x, status:"cancelled"} : x)); showToast("Reservation cancelled"); }} onAdd={() => setModal({ type: "new-res" })}/>}
-              {view === "customers" && <CustomersView customers={customers} onAdd={() => { const name = prompt("Customer name?"); if (!name) return; setCustomers(prev => [...prev, { id: uid("cus"), name, phone: "", visits: 0, spent: 0, points: 0, tier: "Bronze", last: "Just now" }]); showToast(`${name} added`); }}/>}
+              {view === "customers" && <CustomersView customers={customers} onAdd={(newCust) => { setCustomers(prev => [...prev, newCust]); showToast(`${newCust.name} added`); }}/>}
               {view === "admin" && <AdminPanel menuItems={menuItems} setMenuItems={setMenuItems} categories={categories} setCategories={setCategories} orders={orders} settings={settings} showToast={showToast}/>}
               {view === "history" && <HistoryView orders={orders} settings={settings} onReprint={(o) => setModal({ type: "receipt", order: o })}/>}
               {view === "summary" && <SummaryView orders={orders} settings={settings}/>}
@@ -321,4 +325,22 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+// ── Auth-wrapped entry point ──────────────────────────────────
+function AppRoot() {
+  const { loadAuth, clearAuth, saveAuth, LoginScreen, UserBadge } = window._authUtils || {};
+
+  // If auth module not loaded (shouldn't happen), just render App
+  if (!LoginScreen) {
+    return <App/>;
+  }
+
+  const [authUser, setAuthUser] = React.useState(() => loadAuth ? loadAuth() : null);
+
+  if (!authUser) {
+    return <LoginScreen onLogin={(u) => { saveAuth(u); setAuthUser(u); }}/>;
+  }
+
+  return <App authUser={authUser} onLogout={() => { clearAuth(); setAuthUser(null); }}/>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<AppRoot/>);
