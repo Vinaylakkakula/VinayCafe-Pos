@@ -4871,6 +4871,14 @@ const LoginScreen = ({ onLogin }) => {
   const [error,    setError]    = React.useState("");
   const [loading,  setLoading]  = React.useState(false);
 
+  // Override the #root grid so login fills the whole screen
+  React.useEffect(() => {
+    const root = document.getElementById("root");
+    const prev = root.style.cssText;
+    root.style.cssText = "display:block; height:100vh;";
+    return () => { root.style.cssText = prev; };
+  }, []);
+
   const handleLogin = () => {
     setError(""); setLoading(true);
     setTimeout(() => {
