@@ -1,6 +1,3 @@
-// ============================================================
-// MOBILE RESPONSIVE FIX v3
-// ============================================================
 (function () {
   const css = `
 * { box-sizing: border-box; }
@@ -59,31 +56,41 @@
   .mobile-bottom-nav { display: flex !important; }
   .sidebar { display: none !important; }
 
-  /* Root: make #root a column filling the viewport */
+  /* ── Root: full viewport, scrollable column ─────────────── */
+  html, body {
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+
   #root {
     display: flex !important;
     flex-direction: column !important;
     width: 100vw !important;
+    height: 100vh !important;
     min-width: 0 !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
   }
 
-  /* main-col: full width, no height constraint */
+  /* ── main-col: fills remaining space, IS the scroll container ── */
   .main-col {
+    flex: 1 1 0 !important;
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    padding-bottom: 60px !important;
+    /* This is the ONE scroll container — everything else is overflow:visible */
     overflow-x: hidden !important;
-    /* critical: remove any fixed height so children can expand */
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    /* Pad bottom so content clears the fixed nav bar */
+    padding-bottom: 70px !important;
+    /* Remove any height that could trap content */
     height: auto !important;
     max-height: none !important;
-    flex: none !important;
     display: flex !important;
     flex-direction: column !important;
   }
 
-  /* ── Topbar ──────────────────────────────────────────────── */
+  /* ── Topbar: fixed height, never shrinks ─────────────────── */
   .topbar {
     display: flex !important;
     flex-direction: row !important;
@@ -109,7 +116,7 @@
   .shift-badge     { display: none !important; }
   .clock           { display: none !important; }
 
-  /* ── Stats: 2×2 grid ─────────────────────────────────────── */
+  /* ── Stats: 2×2 grid, no shrink ─────────────────────────── */
   .stats-strip {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
@@ -133,20 +140,21 @@
   .alerts-strip   { padding: 0 10px 6px !important; flex-wrap: wrap !important; gap: 4px !important; }
   .alert-chip     { font-size: 10px !important; padding: 3px 7px !important; }
 
-  /* ── THE CRITICAL FIX: dash-body layout ─────────────────── */
+  /* ── THE CRITICAL SCROLL FIX: dash-body ─────────────────── */
   /*
-    Desktop: dash-body is a flex-row with fixed height (100vh - topbar - stats).
-             dash-center overflows its content with overflow-y:scroll.
-    Mobile:  We convert to a normal block column. Every height/overflow
-             constraint must be removed so content flows naturally.
+    All inner containers must be overflow:visible and height:auto
+    so content expands naturally. The ONLY scroll container is .main-col above.
+    If any child has overflow:scroll or a fixed height, it creates a nested
+    scroll trap and the outer scroll stops working on iOS/Android.
   */
   .dash-body {
-    display: block !important;        /* NOT flex — avoids height collapse  */
+    display: flex !important;
+    flex-direction: column !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
-    flex: none !important;
+    flex: 1 1 auto !important;
   }
   .dash-center {
     display: block !important;
@@ -154,7 +162,7 @@
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
-    overflow: visible !important;     /* was overflow-y:scroll on desktop   */
+    overflow: visible !important;
     flex: none !important;
   }
   .dash-right {
@@ -175,6 +183,7 @@
     gap: 7px !important;
     padding: 8px 10px !important;
     height: auto !important;
+    min-height: 0 !important;
     overflow: visible !important;
   }
   .table-card   { padding: 8px 6px !important; min-width: 0 !important; height: auto !important; }
@@ -185,6 +194,32 @@
   .table-meta   { font-size: 9px !important; }
   .table-total  { font-size: 10px !important; }
   .table-splits { display: none !important; }
+
+  /* ── Order placeholder (no table selected) ───────────────── */
+  .no-table-placeholder,
+  .order-placeholder,
+  [class*="placeholder"],
+  [class*="empty-state"] {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 40px 20px !important;
+    height: auto !important;
+    min-height: 160px !important;
+  }
+
+  /* ── Live activity / ticker ──────────────────────────────── */
+  .live-activity,
+  .activity-section {
+    padding: 8px 10px !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .ticker        { padding: 8px 12px !important; height: auto !important; overflow: visible !important; }
+  .ticker-title  { font-size: 10px !important; }
+  .ticker-item   { font-size: 10px !important; padding: 3px 0 !important; }
+  .ticker-time   { font-size: 9px !important; }
 
   /* ── Menu grid ───────────────────────────────────────────── */
   .menu-area { padding: 6px 0 0 !important; height: auto !important; }
@@ -215,7 +250,13 @@
   .menu-img       { height: 72px !important; }
   .menu-card-body { padding: 7px !important; }
   .menu-name      { font-size: 11px !important; }
-  .menu-desc      { font-size: 10px !important; -webkit-line-clamp: 2 !important; overflow: hidden !important; display: -webkit-box !important; -webkit-box-orient: vertical !important; }
+  .menu-desc      {
+    font-size: 10px !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+  }
   .menu-price     { font-size: 12px !important; }
   .menu-add       { padding: 4px 8px !important; font-size: 11px !important; }
   .section-head   { padding: 8px 10px 4px !important; }
@@ -235,6 +276,7 @@
   .order-head-row  { flex-wrap: wrap !important; gap: 6px !important; }
   .order-table-num { font-size: 17px !important; }
   .split-tabs      { flex-wrap: wrap !important; gap: 4px !important; }
+  /* Order items: short inner scroll is fine here since it's a bounded list */
   .order-items     { max-height: 260px !important; overflow-y: auto !important; }
   .order-item      { padding: 7px 0 !important; }
   .qty-btn         { width: 26px !important; height: 26px !important; }
@@ -251,12 +293,6 @@
     padding: 9px 6px !important;
     text-align: center !important;
   }
-
-  /* ── Live ticker ─────────────────────────────────────────── */
-  .ticker        { padding: 8px 12px !important; }
-  .ticker-title  { font-size: 10px !important; }
-  .ticker-item   { font-size: 10px !important; padding: 3px 0 !important; }
-  .ticker-time   { font-size: 9px !important; }
 
   /* ── Modals: bottom sheet ────────────────────────────────── */
   .modal-backdrop {
@@ -296,12 +332,16 @@
 }
 `;
 
+  /* ── Inject stylesheet ───────────────────────────────────── */
+  let existing = document.getElementById('mobile-responsive-fix');
+  if (existing) existing.remove();
+
   const style = document.createElement('style');
   style.id = 'mobile-responsive-fix';
   style.textContent = css;
   document.head.appendChild(style);
 
-  // ── Bottom navigation ───────────────────────────────────────
+  /* ── Bottom navigation ───────────────────────────────────── */
   const NAV = [
     { id: 'floor',        label: 'Floor',   idx: 0, icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>' },
     { id: 'reservations', label: 'Reserve', idx: 1, icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' },
@@ -325,6 +365,9 @@
         const btns = document.querySelectorAll('.sidebar-nav .sidebar-btn');
         if (btns[item.idx]) btns[item.idx].click();
         setActive(item.id);
+        /* Scroll back to top of content on tab switch */
+        const mc = document.querySelector('.main-col');
+        if (mc) mc.scrollTop = 0;
       });
       nav.appendChild(btn);
     });
@@ -332,7 +375,7 @@
     document.body.appendChild(nav);
     setActive('floor');
 
-    // Watch sidebar active class to sync bottom nav
+    /* Sync bottom nav with sidebar active state */
     const viewMap = ['floor','reservations','customers','history','summary','admin','settings'];
     new MutationObserver(() => {
       const btns = [...document.querySelectorAll('.sidebar-nav .sidebar-btn')];
@@ -347,6 +390,6 @@
     }
   }
 
-  // Wait for React to mount
+  /* Wait for React to mount */
   setTimeout(buildNav, 800);
 })();
