@@ -393,3 +393,63 @@
   /* Wait for React to mount */
   setTimeout(buildNav, 800);
 })();
+/* ===== VINAY MOBILE FIX PATCH ===== */
+(function(){
+  const style=document.createElement('style');
+  style.id='vinay-mobile-modal-fix';
+  style.textContent=`
+  @media (max-width:768px){
+
+    .modal{
+      display:flex !important;
+      flex-direction:column !important;
+      max-height:95vh !important;
+    }
+
+    .modal-body{
+      flex:1 1 auto !important;
+      overflow-y:auto !important;
+      padding-bottom:90px !important;
+    }
+
+    .modal-foot{
+      position:sticky !important;
+      bottom:0 !important;
+      background:#16191f !important;
+      z-index:100 !important;
+      display:flex !important;
+      gap:8px !important;
+    }
+
+    .modal-foot .btn{
+      flex:1 !important;
+      min-height:44px !important;
+    }
+
+    .order-panel{
+      max-height:none !important;
+      overflow-y:visible !important;
+    }
+
+    .main-col{
+      padding-bottom:140px !important;
+    }
+
+    .dash-body{
+      display:flex !important;
+      flex-direction:column !important;
+    }
+
+    .dash-center,
+    .dash-right{
+      width:100% !important;
+      max-width:100% !important;
+    }
+
+    .menu-area{
+      display:block !important;
+      width:100% !important;
+    }
+  }`;
+  document.head.appendChild(style);
+})();
