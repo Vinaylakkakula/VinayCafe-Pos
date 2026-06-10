@@ -16,10 +16,11 @@
     display: none !important;
   }
 
-  /* Stack the root layout vertically */
-  body > div,
-  #root > * {
+  /* Root layout — single column */
+  #root {
+    display: flex !important;
     flex-direction: column !important;
+    grid-template-columns: none !important;
   }
 
   /* Main column takes full width */
@@ -28,6 +29,7 @@
     min-width: 0 !important;
     padding-bottom: 72px; /* space for bottom nav */
     overflow-x: hidden;
+    overflow-y: auto !important;
   }
 
   /* ── Top bar ─────────────────────────────────────────────── */
@@ -36,6 +38,7 @@
     gap: 8px !important;
     flex-wrap: wrap !important;
     min-height: unset !important;
+    height: auto !important;
   }
   .page-title-main { font-size: 17px !important; }
   .page-title-sub  { font-size: 11px !important; display: none; }
@@ -50,15 +53,15 @@
   .stats-strip {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 8px !important;
-    padding: 10px 12px !important;
+    gap: 1px !important;
+    padding: 0 !important;
+    background: var(--line) !important;
   }
   .stat-tile {
     padding: 10px 12px !important;
-    border-radius: 10px !important;
   }
-  .stat-tile-value { font-size: 20px !important; }
-  .stat-tile-label { font-size: 10px !important; }
+  .stat-tile-value { font-size: 18px !important; }
+  .stat-tile-label { font-size: 9px !important; }
   .stat-tile-delta { font-size: 10px !important; }
 
   /* ── Tip banner ───────────────────────────────────────────── */
@@ -70,16 +73,21 @@
 
   /* ── Floor view: stack center + right ────────────────────── */
   .dash-body {
+    display: flex !important;
     flex-direction: column !important;
+    grid-template-columns: none !important;
     overflow: visible !important;
     height: auto !important;
     min-height: 0 !important;
+    background: var(--bg) !important;
+    gap: 0 !important;
   }
   .dash-center {
     width: 100% !important;
     min-width: 0 !important;
     overflow: visible !important;
-    padding: 0 !important;
+    padding: 10px 12px !important;
+    flex: none !important;
   }
   .dash-right {
     width: 100% !important;
@@ -93,13 +101,14 @@
   /* ── Floor plan grid: smaller table cards ─────────────────── */
   .floor-grid {
     display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)) !important;
     gap: 8px !important;
-    padding: 10px 12px !important;
+    padding: 0 !important;
   }
   .table-card {
     padding: 10px 8px !important;
     min-width: 0 !important;
+    aspect-ratio: 1.1 !important;
   }
   .table-num  { font-size: 18px !important; }
   .table-cap,
@@ -107,19 +116,27 @@
   .table-meta { font-size: 9px !important; }
   .table-total { font-size: 10px !important; }
   .table-splits { display: none !important; }
+  .table-status { font-size: 8px !important; padding: 2px 5px !important; }
 
   /* ── Menu area ───────────────────────────────────────────── */
   .menu-area {
-    padding: 10px 12px !important;
+    padding: 0 !important;
+    margin-top: 16px !important;
   }
   .cat-tabs {
-    gap: 6px !important;
-    flex-wrap: wrap !important;
-    padding: 6px 12px !important;
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    padding: 0 0 6px 0 !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
-  .cat-tabs button {
-    padding: 5px 10px !important;
+  .cat-tabs::-webkit-scrollbar { display: none; }
+  .cat-tabs button,
+  .cat-tab {
+    padding: 6px 10px !important;
     font-size: 11px !important;
+    flex-shrink: 0 !important;
   }
   .menu-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
@@ -128,9 +145,18 @@
   .menu-card-body { padding: 8px !important; }
   .menu-name      { font-size: 12px !important; }
   .menu-desc      { font-size: 10px !important; display: -webkit-box !important; -webkit-line-clamp: 2 !important; -webkit-box-orient: vertical !important; overflow: hidden !important; }
-  .menu-img       { height: 80px !important; }
+  .menu-img       { aspect-ratio: 1.3 !important; }
   .menu-price     { font-size: 13px !important; }
   .menu-add       { padding: 5px 10px !important; font-size: 11px !important; }
+
+  /* ── Section heads ───────────────────────────────────────── */
+  .section-head {
+    padding: 0 0 10px 0 !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  .section-title { font-size: 16px !important; }
+  .section-sub { font-size: 11px !important; }
 
   /* ── Order panel ─────────────────────────────────────────── */
   .order-panel {
@@ -138,38 +164,36 @@
     min-width: 0 !important;
     max-height: none !important;
     border-radius: 0 !important;
-    padding: 12px !important;
+    border-left: none !important;
   }
-  .order-head      { padding: 10px 0 !important; }
+  .order-head      { padding: 12px 16px !important; }
   .order-table-num { font-size: 18px !important; }
   .totals {
-    padding: 10px 0 !important;
+    padding: 10px 16px !important;
   }
-  .total-row { font-size: 13px !important; }
-  .total-val { font-size: 13px !important; }
-  .grand .val { font-size: 20px !important; }
+  .total-row { font-size: 12px !important; }
+  .total-val { font-size: 12px !important; }
+  .grand .val { font-size: 18px !important; }
   .order-actions {
-    flex-wrap: wrap !important;
-    gap: 8px !important;
+    padding: 12px 16px 16px !important;
   }
   .order-actions .btn {
-    flex: 1 1 auto !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
     padding: 10px !important;
   }
-  .order-items { max-height: 280px !important; overflow-y: auto !important; }
-  .order-item  { padding: 8px 0 !important; }
-  .small-input { width: 56px !important; }
-  .tax-input   { width: 56px !important; }
+  .order-items { max-height: 240px !important; overflow-y: auto !important; }
+  .order-item  { padding: 8px 16px !important; }
+  .small-input { width: 50px !important; }
+  .tax-input   { width: 50px !important; }
 
   /* ── Live activity ticker ────────────────────────────────── */
   .ticker {
     padding: 10px 12px !important;
-    max-height: 140px !important;
+    max-height: 130px !important;
     overflow-y: auto !important;
   }
 
-  /* ── Modals: full-screen on mobile ──────────────────────── */
+  /* ── Modals: bottom sheet on mobile ──────────────────────── */
   .modal-backdrop {
     padding: 0 !important;
     align-items: flex-end !important;
@@ -177,13 +201,53 @@
   .modal {
     width: 100% !important;
     max-width: 100% !important;
-    border-radius: 16px 16px 0 0 !important;
-    max-height: 92vh !important;
-    overflow-y: auto !important;
+    border-radius: 18px 18px 0 0 !important;
+    max-height: 90vh !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
-  .modal-body { padding: 12px 14px !important; }
-  .modal-foot { padding: 10px 14px !important; flex-wrap: wrap !important; gap: 8px !important; }
-  .modal-foot .btn { flex: 1 !important; }
+  .modal-head {
+    padding: 16px 18px !important;
+    position: sticky !important;
+    top: 0 !important;
+    background: var(--bg-1) !important;
+    z-index: 10 !important;
+    border-bottom: 1px solid var(--line) !important;
+    flex-shrink: 0 !important;
+  }
+  .modal-body {
+    padding: 14px 18px !important;
+    overflow-y: auto !important;
+    flex: 1 !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-foot {
+    padding: 12px 18px 20px !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    background: var(--bg-1) !important;
+    z-index: 10 !important;
+    border-top: 1px solid var(--line) !important;
+    flex-shrink: 0 !important;
+  }
+  .modal-foot .btn {
+    flex: 1 !important;
+    padding: 12px !important;
+    font-size: 14px !important;
+  }
+  .modal-title { font-size: 16px !important; }
+  .modal-sub { font-size: 11px !important; }
+
+  /* Settings grid inside modals — single column on mobile */
+  .modal .settings-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .modal .settings-grid .setting-field {
+    grid-column: 1 !important;
+  }
 
   /* ── Context menu ────────────────────────────────────────── */
   .ctx-menu {
@@ -197,18 +261,133 @@
   }
   .ctx-item { padding: 12px 16px !important; font-size: 14px !important; }
 
-  /* ── Section heads ───────────────────────────────────────── */
-  .section-head { padding: 10px 12px 6px !important; }
-  .section-title { font-size: 13px !important; }
-
   /* ── Workspace (other views: reservations, settings, etc) ── */
   .workspace-inner {
     padding: 12px !important;
   }
 
+  /* ── Reservation cards ───────────────────────────────────── */
+  .resv-card {
+    grid-template-columns: 60px 1fr !important;
+    gap: 10px !important;
+    padding: 10px !important;
+  }
+  .resv-actions {
+    grid-column: 1 / -1 !important;
+    justify-content: flex-end !important;
+    padding-top: 6px !important;
+    border-top: 1px solid var(--line) !important;
+    margin-top: 4px !important;
+  }
+
+  /* ── Customer grid ──────────────────────────────────────── */
+  .cust-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* ── History view ───────────────────────────────────────── */
+  .history-row {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+  }
+  .history-filters {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  /* ── Summary view ──────────────────────────────────────── */
+  .summary-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* ── Settings view ─────────────────────────────────────── */
+  .settings-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Admin panel ───────────────────────────────────────── */
+  /* Admin tab buttons - scroll horizontally */
+  .workspace-inner > div > div:first-child {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Admin menu table → stacked cards on mobile */
+  table {
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  thead { display: none !important; }
+  tbody { display: block !important; }
+  tbody tr {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    padding: 12px !important;
+    border-bottom: 1px solid var(--line) !important;
+    gap: 8px !important;
+    align-items: center !important;
+  }
+  tbody td {
+    padding: 0 !important;
+    border: none !important;
+  }
+  /* Item name cell - full width */
+  tbody td:first-child {
+    flex: 1 1 100% !important;
+  }
+  /* Stock and Status cells */
+  tbody td:nth-child(4),
+  tbody td:nth-child(5) {
+    flex: 1 !important;
+  }
+  /* Actions cell */
+  tbody td:last-child {
+    flex: 1 1 100% !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+  }
+
+  /* ── Checkout modal ─────────────────────────────────────── */
+  .pay-methods {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px !important;
+  }
+  .pay-method {
+    padding: 10px 6px !important;
+    font-size: 11px !important;
+  }
+
+  /* ── Notification panel ─────────────────────────────────── */
+  .notif-panel {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 72px !important;
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    max-height: 60vh !important;
+    border-radius: 14px !important;
+  }
+
   /* ── Bottom nav — replaces sidebar on mobile ─────────────── */
   .mobile-bottom-nav {
     display: flex !important;
+  }
+
+  /* ── Mobile back button for table selection ──────────────── */
+  .mobile-table-back-btn {
+    display: flex !important;
+  }
+
+  /* ── Add customer modal on mobile ───────────────────────── */
+  .add-customer-modal .modal {
+    max-height: 90vh !important;
   }
 }
 
@@ -271,6 +450,30 @@
   0%, 100% { opacity: 1; transform: scale(1); }
   50%       { opacity: 0.5; transform: scale(1.4); }
 }
+
+/* ── Mobile back button (hidden on desktop) ──────────────────── */
+.mobile-table-back-btn {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: all .15s;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+}
+.mobile-table-back-btn:hover {
+  color: var(--text);
+  background: var(--bg-3);
+}
 `;
 
   const style = document.createElement('style');
@@ -309,15 +512,7 @@
       btn.innerHTML = (ICONS[item.icon] || '') + `<span>${item.label}</span>`;
       btn.addEventListener('click', () => {
         // Find the matching sidebar button and click it
-        const sidebarBtns = document.querySelectorAll('.sidebar-btn');
-        sidebarBtns.forEach(sb => {
-          if (sb.title === item.label || sb.title.toLowerCase() === item.id) {
-            sb.click();
-          }
-        });
-        // Also try clicking by nav item order — NAV_ITEMS matches sidebar order
         const allNavBtns = document.querySelectorAll('.sidebar-nav .sidebar-btn');
-        const navIndex = NAV.findIndex(n => n.id === item.id);
         // Map our nav to sidebar order: floor=0, reservations=1, customers=2, history=3, admin=5
         const sidebarIndex = { floor:0, reservations:1, customers:2, history:3, admin:5 }[item.id];
         if (allNavBtns[sidebarIndex]) allNavBtns[sidebarIndex].click();
