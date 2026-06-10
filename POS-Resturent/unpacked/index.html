@@ -1103,6 +1103,84 @@ input, select, textarea { font-family: inherit; }
   @page { size: 80mm auto; margin: 4mm; }
 }
 
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width: 768px) {
+  #root { grid-template-columns: 1fr !important; grid-template-rows: 1fr 56px !important; height: 100dvh !important; overflow: hidden; }
+  .sidebar { display: none !important; }
+  .main-col { grid-row: 1; overflow: hidden; display: flex; flex-direction: column; }
+  .topbar { height: 52px !important; padding: 0 12px !important; gap: 8px !important; }
+  .page-title-main { font-size: 15px !important; }
+  .page-title-sub { display: none !important; }
+  .topbar-right > .shift-badge, .topbar-right > .clock { display: none !important; }
+  .topbar-right { gap: 8px !important; }
+  .stats-strip { grid-template-columns: 1fr 1fr !important; }
+  .stat-tile { padding: 10px 12px !important; }
+  .stat-tile-value { font-size: 17px !important; }
+  .dash-body { grid-template-columns: 1fr !important; overflow: hidden; }
+  .dash-center { padding: 10px !important; overflow: auto; }
+  .dash-right { position: fixed !important; bottom: 56px !important; left: 0 !important; right: 0 !important; height: 52vh !important; border-top: 2px solid var(--amber) !important; border-radius: 16px 16px 0 0 !important; z-index: 80 !important; overflow: hidden !important; display: flex !important; flex-direction: column !important; }
+  .table-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 6px !important; }
+  .table-card { padding: 8px 6px !important; min-height: 68px !important; }
+  .table-num { font-size: 14px !important; }
+  .table-cap { font-size: 9px !important; }
+  .menu-cats { flex-wrap: nowrap !important; overflow-x: auto !important; gap: 4px !important; padding-bottom: 4px; }
+  .menu-cat-btn { padding: 5px 10px !important; font-size: 11px !important; white-space: nowrap; }
+  .menu-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; gap: 5px !important; }
+  .menu-card-img { height: 64px !important; }
+  .menu-card-name { font-size: 11px !important; }
+  .menu-price { font-size: 12px !important; }
+  .order-items { flex: 1 !important; overflow-y: auto !important; }
+  .order-item { padding: 6px 10px !important; }
+  .order-actions { padding: 8px 10px 10px !important; }
+  .order-actions .btn { font-size: 11px !important; padding: 8px 5px !important; }
+  .modal-backdrop { align-items: flex-end !important; }
+  .modal { width: 100% !important; max-width: 100% !important; max-height: 92vh !important; border-radius: 16px 16px 0 0 !important; margin: 0 !important; }
+  .pay-methods { grid-template-columns: repeat(2, 1fr) !important; }
+  .quick-cash { grid-template-columns: repeat(2, 1fr) !important; }
+  .summary-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .admin-grid, .cust-grid, .res-grid { grid-template-columns: 1fr !important; }
+  .search-box { max-width: 140px !important; }
+  .search-box kbd { display: none !important; }
+  ::-webkit-scrollbar { width: 2px !important; height: 2px !important; }
+}
+
+/* Mobile bottom navigation bar */
+.mobile-bottom-nav { display: none; }
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    grid-row: 2;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-around;
+    background: var(--bg-1);
+    border-top: 1px solid var(--line);
+    height: 56px;
+    padding: 0 2px;
+    z-index: 90;
+  }
+  .mobile-nav-btn {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex: 1;
+    height: 100%;
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    font-size: 9px;
+    font-family: inherit;
+    cursor: pointer;
+    position: relative;
+    padding: 0;
+    transition: color .15s;
+    border-radius: 8px;
+  }
+  .mobile-nav-btn.active { color: var(--amber-bright); }
+  .mobile-nav-btn .m-pulse { position: absolute; top: 5px; right: calc(50% - 15px); width: 6px; height: 6px; background: var(--red); border-radius: 50%; }
+}
+
 /* Utility */
 .flex { display: flex; }
 .row { display: flex; align-items: center; gap: 8px; }
