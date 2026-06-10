@@ -4703,7 +4703,7 @@ function App({ authUser, onLogout }) {
   return (
     <>
       <aside className="sidebar no-print">
-        <div className="sidebar-brand">E</div>
+        <div className="sidebar-brand" title="Vinay Cafe POS">🍽</div>
         <nav className="sidebar-nav">
           {NAV_ITEMS.filter(item => perms[item.id] !== false).map(item => (
             <button key={item.id} className={`sidebar-btn ${view === item.id ? "active" : ""}`} onClick={() => setView(item.id)} title={item.label}>
