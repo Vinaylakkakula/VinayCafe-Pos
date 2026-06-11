@@ -483,14 +483,6 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* ── Base modal flex structure for mobile ── */
-.modal {
-  display: flex;
-  flex-direction: column;
-}
-.modal-head { flex-shrink: 0; }
-.modal-body { flex: 1; min-height: 0; overflow-y: auto; }
-.modal-foot { flex-shrink: 0; }
 </style>
 <style>:root {
   --bg: #0e0f11;
@@ -1099,18 +1091,30 @@ input, select, textarea { font-family: inherit; }
 .method-split-bar > div { height: 100%; transition: width .3s; }
 .method-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--text-dim); }
 
-/* Print — thermal receipt only */
+/* Print — thermal receipt / KOT only */
 @media print {
+  /* Hide everything */
   body * { visibility: hidden !important; }
+  /* Show only the element marked print-target and its children */
   .print-target, .print-target * { visibility: visible !important; }
   .print-target {
     position: fixed !important;
     top: 0 !important; left: 0 !important;
     width: 80mm !important;
-    margin: 0 !important; padding: 0 !important;
+    margin: 0 !important; padding: 8px !important;
     background: #fff !important;
+    color: #000 !important;
     box-shadow: none !important;
+    border: none !important;
+    font-family: 'Courier New', monospace !important;
   }
+  /* Force all text black on white for thermal printers */
+  .print-target * {
+    background: #fff !important;
+    color: #000 !important;
+    border-color: #000 !important;
+  }
+  .print-target .kot-note { color: #555 !important; }
   @page { size: 80mm auto; margin: 4mm; }
 }
 

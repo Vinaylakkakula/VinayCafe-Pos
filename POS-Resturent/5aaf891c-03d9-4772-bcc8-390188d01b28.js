@@ -1,24 +1,85 @@
 // Modals: KOT, Checkout, Receipt, Waiter assign
 
+const KOT_ADDONS = [
+  { id:"xs",  label:"Extra Spicy",   icon:"🌶️" },
+  { id:"ms",  label:"Medium Spicy",  icon:"🌶" },
+  { id:"ns",  label:"No Spice",      icon:"❄️" },
+  { id:"lg",  label:"Less Gravy",    icon:"💧" },
+  { id:"eg",  label:"Extra Gravy",   icon:"🫙" },
+  { id:"no",  label:"No Onion",      icon:"🚫" },
+  { id:"ng",  label:"No Garlic",     icon:"🧄" },
+  { id:"xc",  label:"Extra Crispy",  icon:"🔥" },
+  { id:"lc",  label:"Less Oil",      icon:"🫒" },
+  { id:"vs",  label:"No Salt",       icon:"🧂" },
+];
+
 const KOTModal = ({ table, split, onClose }) => {
   const now = new Date();
-  const printKot = () => {
-    document.body.classList.add("print-kot");
-    window.print();
-    setTimeout(() => document.body.classList.remove("print-kot"), 100);
+  // itemAddons: { [itemIdx]: Set of addon ids }
+  const [itemAddons, setItemAddons] = React.useState(() => {
+    const init = {};
+    split.items.forEach((_, i) => { init[i] = new Set(); });
+    return init;
+  });
+  const kotRef = React.useRef(null);
+
+  const toggleAddon = (itemIdx, addonId) => {
+    setItemAddons(prev => {
+      const next = { ...prev };
+      const s = new Set(next[itemIdx]);
+      if (s.has(addonId)) s.delete(addonId); else s.add(addonId);
+      next[itemIdx] = s;
+      return next;
+    });
   };
+
+  const printKot = () => {
+    if (kotRef.current) kotRef.current.classList.add("print-target");
+    window.print();
+    setTimeout(() => { if (kotRef.current) kotRef.current.classList.remove("print-target"); }, 500);
+  };
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" style={{width: 420}} onClick={(e)=>e.stopPropagation()}>
+      <div className="modal" style={{width: 460}} onClick={(e)=>e.stopPropagation()}>
         <div className="modal-head no-print">
           <div>
             <div className="modal-title">Kitchen Order Ticket</div>
-            <div className="modal-sub">Preview before sending to kitchen printer</div>
+            <div className="modal-sub">Add addons per item, then print to kitchen</div>
           </div>
           <button className="modal-close" onClick={onClose}><Icon name="x"/></button>
         </div>
-        <div className="modal-body" style={{background:'#2a2f36', display:'grid', placeItems:'center'}}>
-          <div className="kot">
+        <div className="modal-body" style={{background:'#2a2f36', display:'grid', placeItems:'center', gap:12, padding:'16px'}}>
+          {/* Addon editor — screen only */}
+          <div className="no-print" style={{width:'100%', background:'#1e2329', borderRadius:8, padding:12}}>
+            <div style={{fontSize:11, color:'var(--text-dim)', marginBottom:8, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.05em'}}>Item Addons / Special Instructions</div>
+            {split.items.map((item, idx) => (
+              <div key={idx} style={{marginBottom:10, paddingBottom:10, borderBottom:'1px solid #2e3440'}}>
+                <div style={{fontSize:13, fontWeight:600, color:'var(--text-primary)', marginBottom:6}}>
+                  {item.qty}× {item.name}
+                </div>
+                <div style={{display:'flex', flexWrap:'wrap', gap:4}}>
+                  {KOT_ADDONS.map(a => {
+                    const active = itemAddons[idx]?.has(a.id);
+                    return (
+                      <button key={a.id} onClick={() => toggleAddon(idx, a.id)}
+                        style={{
+                          padding:'3px 8px', borderRadius:20, fontSize:11, cursor:'pointer', border:'1px solid',
+                          borderColor: active ? 'var(--accent)' : '#3a4050',
+                          background: active ? 'rgba(249,168,37,0.15)' : 'transparent',
+                          color: active ? 'var(--accent)' : 'var(--text-dim)',
+                          transition:'all .15s'
+                        }}>
+                        {a.icon} {a.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* KOT print preview */}
+          <div ref={kotRef} className="kot">
             <div className="kot-head">
               <div className="kot-title">KOT</div>
               <div style={{fontSize:11, marginTop:2}}>KITCHEN ORDER TICKET</div>
@@ -29,28 +90,33 @@ const KOTModal = ({ table, split, onClose }) => {
             <div className="kot-meta"><span>DATE</span><span>{now.toLocaleDateString()}</span></div>
             <div className="kot-meta"><span>SPLIT</span><span>{split.label}</span></div>
             <div style={{borderTop:'2px dashed #000', margin:'8px 0'}}/>
-            {split.items.map((item, idx) => (
-              <div key={idx} className="kot-item">
-                <div className="kot-item-row">
-                  <span>{item.name}</span>
-                  <span>× {item.qty}</span>
+            {split.items.map((item, idx) => {
+              const addons = [...(itemAddons[idx] || [])].map(id => KOT_ADDONS.find(a=>a.id===id)?.label).filter(Boolean);
+              return (
+                <div key={idx} className="kot-item">
+                  <div className="kot-item-row">
+                    <span>{item.name}</span>
+                    <span>× {item.qty}</span>
+                  </div>
+                  {addons.length > 0 && <div className="kot-note">🔧 {addons.join(", ")}</div>}
+                  {item.note && <div className="kot-note">» {item.note}</div>}
                 </div>
-                {item.note && <div className="kot-note">» {item.note}</div>}
-              </div>
-            ))}
+              );
+            })}
             <div className="kot-foot">— END OF TICKET —</div>
           </div>
         </div>
         <div className="modal-foot no-print">
           <button className="btn btn-ghost" onClick={onClose}>Close</button>
           <button className="btn btn-primary" onClick={printKot}>
-            <Icon name="print" size={14}/> Print & Send
+            <Icon name="print" size={14}/> Print & Send to Kitchen
           </button>
         </div>
       </div>
     </div>
   );
 };
+
 
 const CheckoutModal = ({ table, split, totals, settings, onClose, onConfirm }) => {
   const [method, setMethod] = React.useState("cash");
@@ -206,8 +272,11 @@ const CheckoutModal = ({ table, split, totals, settings, onClose, onConfirm }) =
 };
 
 const ReceiptModal = ({ order, settings, onClose }) => {
+  const receiptRef = React.useRef(null);
   const doPrint = () => {
+    if (receiptRef.current) receiptRef.current.classList.add("print-target");
     window.print();
+    setTimeout(() => { if (receiptRef.current) receiptRef.current.classList.remove("print-target"); }, 600);
   };
   const split = order.split;
   const totals = order.totals;
@@ -225,7 +294,7 @@ const ReceiptModal = ({ order, settings, onClose }) => {
           <button className="modal-close" onClick={onClose}><Icon name="x"/></button>
         </div>
         <div className="modal-body" style={{background:'#2a2f36', display:'grid', placeItems:'center'}}>
-          <div className="receipt">
+          <div ref={receiptRef} className="receipt">
             <div className="receipt-head">
               <div className="receipt-name">{settings.restaurantName}</div>
               <div className="receipt-addr">

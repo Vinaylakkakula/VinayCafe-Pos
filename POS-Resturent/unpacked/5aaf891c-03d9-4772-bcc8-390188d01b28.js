@@ -272,8 +272,11 @@ const CheckoutModal = ({ table, split, totals, settings, onClose, onConfirm }) =
 };
 
 const ReceiptModal = ({ order, settings, onClose }) => {
+  const receiptRef = React.useRef(null);
   const doPrint = () => {
+    if (receiptRef.current) receiptRef.current.classList.add("print-target");
     window.print();
+    setTimeout(() => { if (receiptRef.current) receiptRef.current.classList.remove("print-target"); }, 600);
   };
   const split = order.split;
   const totals = order.totals;
@@ -291,7 +294,7 @@ const ReceiptModal = ({ order, settings, onClose }) => {
           <button className="modal-close" onClick={onClose}><Icon name="x"/></button>
         </div>
         <div className="modal-body" style={{background:'#2a2f36', display:'grid', placeItems:'center'}}>
-          <div className="receipt">
+          <div ref={receiptRef} className="receipt">
             <div className="receipt-head">
               <div className="receipt-name">{settings.restaurantName}</div>
               <div className="receipt-addr">

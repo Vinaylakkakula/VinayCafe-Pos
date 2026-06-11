@@ -18,7 +18,7 @@ const NAV_ITEMS = [
   { id: "settings", icon: "gear", label: "Settings" },
 ];
 
-function App() {
+function App({ authUser, onLogout }) {
   const saved = loadState();
   const [settings, setSettings] = React.useState(saved?.settings || DEFAULT_SETTINGS);
   const [tables, setTables] = React.useState(saved?.tables || buildInitialTables(DEFAULT_SETTINGS.tableCount));
@@ -183,7 +183,7 @@ function App() {
   return (
     <>
       <aside className="sidebar no-print">
-        <div className="sidebar-brand">E</div>
+        <div className="sidebar-brand" title="Vinay Cafe POS" style={{overflow:"visible", fontSize:0}}><svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="13" cy="13" r="13" fill="#1a0f00"/><text x="13" y="17" textAnchor="middle" fontFamily="Inter,sans-serif" fontWeight="800" fontSize="11" fill="#f9a825">VC</text></svg></div>
         <nav className="sidebar-nav">
           {NAV_ITEMS.map(item => (
             <button key={item.id} className={`sidebar-btn ${view === item.id ? "active" : ""}`} onClick={() => setView(item.id)} title={item.label}>
@@ -229,10 +229,14 @@ function App() {
               <div className="clock-time">{formatTime(now)}</div>
               <div className="clock-date">{formatDate(now)}</div>
             </div>
-            <div className="cashier-chip">
-              <div className="avatar">{settings.cashierName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()}</div>
-              <span>{settings.cashierName}</span>
-            </div>
+            {authUser && window._authUtils?.UserBadge ? (
+              <window._authUtils.UserBadge user={authUser} onLogout={onLogout || (() => {})}/>
+            ) : (
+              <div className="cashier-chip">
+                <div className="avatar">{settings.cashierName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()}</div>
+                <span>{settings.cashierName}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -300,7 +304,7 @@ function App() {
           <div className="workspace" style={{flex:1, minHeight:0, background:'var(--bg)'}}>
             <div className="workspace-inner" style={{maxWidth: 1200, margin:'0 auto', width:'100%'}}>
               {view === "reservations" && <ReservationsView reservations={reservations} tables={tables} onCheckIn={seatReservation} onCancel={(r) => { setReservations(prev => prev.map(x => x.id === r.id ? {...x, status:"cancelled"} : x)); showToast("Reservation cancelled"); }} onAdd={() => setModal({ type: "new-res" })}/>}
-              {view === "customers" && <CustomersView customers={customers} onAdd={(newCust) => { setCustomers(prev => [...prev, newCust]); showToast(`${newCust.name} added`); }}/>}
+              {view === "customers" && <CustomersView customers={customers} onAdd={() => setModal({ type: "new-customer" })}/>}
               {view === "admin" && <AdminPanel menuItems={menuItems} setMenuItems={setMenuItems} categories={categories} setCategories={setCategories} orders={orders} settings={settings} showToast={showToast}/>}
               {view === "history" && <HistoryView orders={orders} settings={settings} onReprint={(o) => setModal({ type: "receipt", order: o })}/>}
               {view === "summary" && <SummaryView orders={orders} settings={settings}/>}
@@ -316,9 +320,28 @@ function App() {
       {modal?.type === "receipt" && <ReceiptModal order={modal.order} settings={settings} onClose={() => setModal(null)}/>}
       {modal?.type === "waiter" && <WaiterModal table={modal.table} onClose={() => setModal(null)} onAssign={(name) => assignWaiter(modal.table, name)}/>}
       {modal?.type === "new-res" && <NewReservationModal tables={tables} onClose={() => setModal(null)} onSave={(r) => { setReservations(prev => [...prev, r]); setModal(null); showToast(`Reservation saved for ${r.name}`); }}/>}
+      {modal?.type === "new-customer" && <NewCustomerModal onClose={() => setModal(null)} onSave={(c) => { setCustomers(prev => [...prev, c]); setModal(null); showToast(`${c.name} added`); }}/>}
       {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
     </>
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+// ── Auth-wrapped entry point ──────────────────────────────────
+function AppRoot() {
+  const { loadAuth, clearAuth, saveAuth, LoginScreen, UserBadge } = window._authUtils || {};
+
+  // If auth module not loaded (shouldn't happen), just render App
+  if (!LoginScreen) {
+    return <App/>;
+  }
+
+  const [authUser, setAuthUser] = React.useState(() => loadAuth ? loadAuth() : null);
+
+  if (!authUser) {
+    return <LoginScreen onLogin={(u) => { saveAuth(u); setAuthUser(u); }}/>;
+  }
+
+  return <App authUser={authUser} onLogout={() => { clearAuth(); setAuthUser(null); }}/>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<AppRoot/>);

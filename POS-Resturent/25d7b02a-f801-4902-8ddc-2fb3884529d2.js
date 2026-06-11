@@ -56,7 +56,6 @@ const ReservationsView = ({ reservations, onAssignTable, onCancel, onCheckIn, ta
 };
 
 const CustomersView = ({ customers, onAdd }) => {
-  const [showAddModal, setShowAddModal] = React.useState(false);
   return (
     <div>
       <div className="section-head">
@@ -64,7 +63,7 @@ const CustomersView = ({ customers, onAdd }) => {
           <div className="section-title">Customers & Loyalty</div>
           <div className="section-sub">{customers.length} regulars · Track visits and reward tiers</div>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
+        <button className="btn btn-primary" onClick={onAdd}>
           <Icon name="plus" size={13}/> Add Customer
         </button>
       </div>
@@ -89,56 +88,6 @@ const CustomersView = ({ customers, onAdd }) => {
             </div>
           </div>
         ))}
-      </div>
-      {showAddModal && <AddCustomerModal onClose={() => setShowAddModal(false)} onSave={(cust) => { onAdd(cust); setShowAddModal(false); }} />}
-    </div>
-  );
-};
-
-const AddCustomerModal = ({ onClose, onSave }) => {
-  const [form, setForm] = React.useState({ name: "", phone: "" });
-  const upd = (p) => setForm({ ...form, ...p });
-  const handleSave = () => {
-    if (!form.name.trim()) return;
-    onSave({
-      id: uid("cus"),
-      name: form.name.trim(),
-      phone: form.phone.trim(),
-      visits: 0,
-      spent: 0,
-      points: 0,
-      tier: "Bronze",
-      last: "Just now"
-    });
-  };
-  return (
-    <div className="modal-backdrop add-customer-modal" onClick={onClose}>
-      <div className="modal" style={{width: 420}} onClick={(e)=>e.stopPropagation()}>
-        <div className="modal-head">
-          <div>
-            <div className="modal-title">Add Customer</div>
-            <div className="modal-sub">Register a new loyalty customer</div>
-          </div>
-          <button className="modal-close" onClick={onClose}><Icon name="x"/></button>
-        </div>
-        <div className="modal-body">
-          <div className="settings-grid">
-            <div className="setting-field full">
-              <label>Full Name <span style={{color:'var(--red)'}}>*</span></label>
-              <input autoFocus value={form.name} onChange={(e) => upd({ name: e.target.value })} placeholder="e.g. Priya Sharma"/>
-            </div>
-            <div className="setting-field full">
-              <label>Phone</label>
-              <input value={form.phone} onChange={(e) => upd({ phone: e.target.value })} placeholder="+91 98765 43210" type="tel"/>
-            </div>
-          </div>
-        </div>
-        <div className="modal-foot">
-          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSave} disabled={!form.name.trim()}>
-            <Icon name="save" size={13}/> Save Customer
-          </button>
-        </div>
       </div>
     </div>
   );
@@ -224,4 +173,33 @@ const NewReservationModal = ({ onClose, onSave, tables }) => {
   );
 };
 
-Object.assign(window, { ReservationsView, CustomersView, NotificationsPanel, NewReservationModal });
+const NewCustomerModal = ({ onClose, onSave }) => {
+  const [form, setForm] = React.useState({ name: '', phone: '', note: '' });
+  const upd = p => setForm(f => ({ ...f, ...p }));
+  const save = () => {
+    if (!form.name.trim()) return;
+    onSave({ id: uid('cus'), name: form.name.trim(), phone: form.phone.trim(), visits: 0, spent: 0, points: 0, tier: 'Bronze', last: 'Just now' });
+  };
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" style={{width:400}} onClick={e=>e.stopPropagation()}>
+        <div className="modal-head">
+          <div><div className="modal-title">Add Customer</div><div className="modal-sub">Register a new loyalty customer</div></div>
+          <button className="modal-close" onClick={onClose}><Icon name="x"/></button>
+        </div>
+        <div className="modal-body">
+          <div className="settings-grid">
+            <div className="setting-field full"><label>Full Name *</label><input autoFocus value={form.name} onChange={e=>upd({name:e.target.value})} placeholder="e.g. Priya Sharma"/></div>
+            <div className="setting-field full"><label>Phone</label><input value={form.phone} onChange={e=>upd({phone:e.target.value})} placeholder="+91 98765 43210"/></div>
+          </div>
+        </div>
+        <div className="modal-foot">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={save} disabled={!form.name.trim()}><Icon name="plus" size={13}/> Add Customer</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+Object.assign(window, { ReservationsView, CustomersView, NotificationsPanel, NewReservationModal, NewCustomerModal });

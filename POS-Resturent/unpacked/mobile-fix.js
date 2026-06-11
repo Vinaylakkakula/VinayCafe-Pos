@@ -223,8 +223,9 @@
     width: 100% !important;
     max-width: 100% !important;
     border-radius: 20px 20px 0 0 !important;
-    max-height: 88dvh !important;
+    /* Size to content — no blank space for short forms */
     height: auto !important;
+    max-height: 88dvh !important;
     overflow: hidden !important;
     display: flex !important;
     flex-direction: column !important;
@@ -243,16 +244,13 @@
   .modal-head {
     padding: 16px 18px 14px !important;
     flex-shrink: 0 !important;
-    position: sticky !important;
-    top: 0 !important;
     background: var(--bg-1) !important;
     z-index: 2 !important;
     border-bottom: 1px solid var(--line) !important;
-    /* drag handle */
     border-top: 3px solid transparent !important;
     background-clip: padding-box !important;
   }
-  /* visual drag handle above modal */
+  /* Visual drag handle pill */
   .modal-head::before {
     content: '' !important;
     display: block !important;
@@ -267,11 +265,13 @@
   .modal-sub   { font-size: 12px !important; }
 
   .modal-body {
-    flex: 1 1 0 !important;
-    min-height: 0 !important;
+    /* DO NOT use flex:1 — that forces expansion and creates blank space */
+    flex: 0 1 auto !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     padding: 16px 18px !important;
+    /* Constrain to remaining space so it scrolls on long forms */
+    max-height: calc(88dvh - 130px) !important;
   }
 
   .modal-foot {
@@ -282,8 +282,6 @@
     padding-bottom: max(18px, env(safe-area-inset-bottom)) !important;
     border-top: 1px solid var(--line) !important;
     background: var(--bg-1) !important;
-    position: sticky !important;
-    bottom: 0 !important;
     z-index: 2 !important;
     justify-content: stretch !important;
   }
