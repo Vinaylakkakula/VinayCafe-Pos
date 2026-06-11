@@ -1,3 +1,14 @@
+// Portal helper — escapes overflow/stacking context
+const Portal = window.Portal || (({ children }) => {
+  const el = React.useRef(document.createElement('div'));
+  React.useEffect(() => {
+    const container = el.current;
+    document.body.appendChild(container);
+    return () => { document.body.removeChild(container); };
+  }, []);
+  return ReactDOM.createPortal(children, el.current);
+});
+
 // Reservations, Customers, Notifications views
 
 const ReservationsView = ({ reservations, onAssignTable, onCancel, onCheckIn, tables, onAdd }) => {
@@ -142,7 +153,7 @@ const NewReservationModal = ({ onClose, onSave, tables }) => {
     });
   };
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <Portal><div className="modal-backdrop" onClick={onClose}>
       <div className="modal" style={{width: 420}} onClick={(e)=>e.stopPropagation()}>
         <div className="modal-head">
           <div><div className="modal-title">New Reservation</div><div className="modal-sub">Book a guest for today</div></div>
@@ -169,7 +180,7 @@ const NewReservationModal = ({ onClose, onSave, tables }) => {
           <button className="btn btn-primary" onClick={save} disabled={!form.name}>Save</button>
         </div>
       </div>
-    </div>
+    </div></Portal>
   );
 };
 
@@ -181,7 +192,7 @@ const NewCustomerModal = ({ onClose, onSave }) => {
     onSave({ id: uid('cus'), name: form.name.trim(), phone: form.phone.trim(), visits: 0, spent: 0, points: 0, tier: 'Bronze', last: 'Just now' });
   };
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <Portal><div className="modal-backdrop" onClick={onClose}>
       <div className="modal" style={{width:400}} onClick={e=>e.stopPropagation()}>
         <div className="modal-head">
           <div><div className="modal-title">Add Customer</div><div className="modal-sub">Register a new loyalty customer</div></div>
@@ -198,7 +209,7 @@ const NewCustomerModal = ({ onClose, onSave }) => {
           <button className="btn btn-primary" onClick={save} disabled={!form.name.trim()}><Icon name="plus" size={13}/> Add Customer</button>
         </div>
       </div>
-    </div>
+    </div></Portal>
   );
 };
 

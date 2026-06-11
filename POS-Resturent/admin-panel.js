@@ -1,3 +1,16 @@
+// ── Portal: renders children directly on document.body to escape
+//    any parent overflow/stacking context (needed for modals inside
+//    .workspace-inner which has overflow:auto)
+const Portal = ({ children }) => {
+  const el = React.useRef(document.createElement('div'));
+  React.useEffect(() => {
+    const container = el.current;
+    document.body.appendChild(container);
+    return () => { document.body.removeChild(container); };
+  }, []);
+  return ReactDOM.createPortal(children, el.current);
+};
+
 // ============================================================
 // ADMIN PANEL — Menu CRUD, Category Management, Admin Dashboard
 // ============================================================
@@ -33,8 +46,8 @@ const MenuItemModal = ({ item, categories, onClose, onSave }) => {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" style={{ width: 560, maxHeight: "90vh", overflow: "auto" }} onClick={e => e.stopPropagation()}>
+    <Portal><div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" style={{ width: 560 }} onClick={e => e.stopPropagation()}>
         <div className="modal-head">
           <div>
             <div className="modal-title">{isEdit ? "Edit Menu Item" : "Add Menu Item"}</div>
@@ -114,7 +127,7 @@ const MenuItemModal = ({ item, categories, onClose, onSave }) => {
           </button>
         </div>
       </div>
-    </div>
+    </div></Portal>
   );
 };
 
@@ -132,7 +145,7 @@ const CategoryModal = ({ cat, onClose, onSave }) => {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <Portal><div className="modal-backdrop" onClick={onClose}>
       <div className="modal" style={{ width: 400 }} onClick={e => e.stopPropagation()}>
         <div className="modal-head">
           <div>
@@ -165,14 +178,14 @@ const CategoryModal = ({ cat, onClose, onSave }) => {
           </button>
         </div>
       </div>
-    </div>
+    </div></Portal>
   );
 };
 
 // ---- Delete Confirm Modal ------------------------------------
 
 const DeleteConfirmModal = ({ title, desc, onClose, onConfirm }) => (
-  <div className="modal-backdrop" onClick={onClose}>
+  <Portal><div className="modal-backdrop" onClick={onClose}>
     <div className="modal" style={{ width: 380 }} onClick={e => e.stopPropagation()}>
       <div className="modal-head">
         <div>
@@ -195,7 +208,7 @@ const DeleteConfirmModal = ({ title, desc, onClose, onConfirm }) => (
         </button>
       </div>
     </div>
-  </div>
+  </div></Portal>
 );
 
 // ---- Admin Panel Main View ----------------------------------
