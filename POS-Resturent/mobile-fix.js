@@ -445,13 +445,20 @@
   function injectBottomNav() {
     if (document.getElementById('mobile-bottom-nav')) return;
 
-    const NAV = [
+    const ALL_NAV = [
       { id: 'floor',        icon: 'grid',    label: 'Floor'   },
       { id: 'reservations', icon: 'clock',   label: 'Reserve' },
       { id: 'customers',    icon: 'users',   label: 'Guests'  },
       { id: 'history',      icon: 'history', label: 'Orders'  },
       { id: 'admin',        icon: 'chef',    label: 'Admin'   },
     ];
+    // Filter by role perms
+    const _auth = window._authUtils;
+    const _session = (() => { try { const r = sessionStorage.getItem('vinay_pos_auth'); return r ? JSON.parse(r) : null; } catch { return null; } })();
+    const _perms = (_auth && _session) ? _auth.ROLE_PERMS?.[_session.role] : null;
+    const NAV = _perms
+      ? ALL_NAV.filter(item => _perms[item.id] !== false)
+      : ALL_NAV;
 
     const ICONS = {
       grid:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',

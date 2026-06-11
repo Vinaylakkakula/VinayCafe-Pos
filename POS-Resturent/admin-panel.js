@@ -155,18 +155,21 @@ const CategoryModal = ({ cat, onClose, onSave }) => {
           <button className="modal-close" onClick={onClose}><Icon name="x" /></button>
         </div>
         <div className="modal-body">
-          <div className="settings-grid">
-            <div className="setting-field">
-              <label>Emoji Icon</label>
-              <input maxLength={4} value={form.icon} onChange={e => upd({ icon: e.target.value })} style={{ fontSize: 20, textAlign: "center" }} />
-            </div>
-            <div className="setting-field">
-              <label>Category Name <span style={{ color: "var(--red)" }}>*</span></label>
-              <input autoFocus value={form.name} onChange={e => upd({ name: e.target.value })} placeholder="e.g. Biryani" />
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="setting-field">
+                <label>Emoji Icon</label>
+                <input maxLength={4} value={form.icon} onChange={e => upd({ icon: e.target.value })}
+                  style={{ fontSize: 24, textAlign: "center", padding:"10px 8px", letterSpacing:2 }} />
+              </div>
+              <div className="setting-field">
+                <label>Category Name <span style={{ color: "var(--red)" }}>*</span></label>
+                <input autoFocus value={form.name} onChange={e => upd({ name: e.target.value })} placeholder="e.g. Biryani" />
+              </div>
             </div>
             {!isEdit && (
-              <div className="setting-field full" style={{ color: "var(--text-muted)", fontSize: 12 }}>
-                Category ID will be auto-generated from the name.
+              <div style={{ color:"var(--text-dim)", fontSize:12, background:"var(--bg-2)", padding:"8px 10px", borderRadius:6 }}>
+                💡 Category ID will be auto-generated from the name.
               </div>
             )}
           </div>

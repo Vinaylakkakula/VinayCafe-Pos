@@ -185,7 +185,18 @@ function App({ authUser, onLogout }) {
       <aside className="sidebar no-print">
         <div className="sidebar-brand" title="Vinay Cafe POS" style={{overflow:"visible", fontSize:0}}><svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="13" cy="13" r="13" fill="#1a0f00"/><text x="13" y="17" textAnchor="middle" fontFamily="Inter,sans-serif" fontWeight="800" fontSize="11" fill="#f9a825">VC</text></svg></div>
         <nav className="sidebar-nav">
-          {NAV_ITEMS.map(item => (
+          {NAV_ITEMS.filter(item => {
+              const perms = window._authUtils?.ROLE_PERMS?.[authUser?.role];
+              if (!perms) return true; // no auth = show all
+              const key = item.id === 'reservations' ? 'reservations'
+                        : item.id === 'customers'    ? 'customers'
+                        : item.id === 'history'      ? 'history'
+                        : item.id === 'summary'      ? 'summary'
+                        : item.id === 'admin'        ? 'admin'
+                        : item.id === 'settings'     ? 'settings'
+                        : 'floor';
+              return perms[key] !== false;
+            }).map(item => (
             <button key={item.id} className={`sidebar-btn ${view === item.id ? "active" : ""}`} onClick={() => setView(item.id)} title={item.label}>
               <Icon name={item.icon} size={18}/>
               {item.id === "reservations" && reservations.filter(r => r.status==="confirmed" && r.ts - Date.now() < 60*60*1000 && r.ts > Date.now()).length > 0 && <span className="pulse"/>}
