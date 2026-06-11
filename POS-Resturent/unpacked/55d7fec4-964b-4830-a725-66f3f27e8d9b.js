@@ -183,7 +183,18 @@ function App({ authUser, onLogout }) {
   return (
     <>
       <aside className="sidebar no-print">
-        <div className="sidebar-brand" title="Vinay Cafe POS" style={{overflow:"visible", fontSize:0}}><svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="13" cy="13" r="13" fill="#1a0f00"/><text x="13" y="17" textAnchor="middle" fontFamily="Inter,sans-serif" fontWeight="800" fontSize="11" fill="#f9a825">VC</text></svg></div>
+        <div className="sidebar-brand" title="Vinay Cafe POS">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2C7.373 2 2 7.373 2 14s5.373 12 12 12 12-5.373 12-12S20.627 2 14 2z" fill="url(#lgv)" opacity="0.15"/>
+            <path d="M8 10h3v8H8zM12.5 10h3v8h-3zM17 10h3v8h-3z" fill="none"/>
+            <text x="14" y="18" textAnchor="middle" fontFamily="Inter,sans-serif" fontWeight="800" fontSize="11" fill="#1a0f00">VC</text>
+            <defs>
+              <linearGradient id="lgv" x1="2" y1="2" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#f9a825"/><stop offset="1" stopColor="#c4761e"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
         <nav className="sidebar-nav">
           {NAV_ITEMS.map(item => (
             <button key={item.id} className={`sidebar-btn ${view === item.id ? "active" : ""}`} onClick={() => setView(item.id)} title={item.label}>

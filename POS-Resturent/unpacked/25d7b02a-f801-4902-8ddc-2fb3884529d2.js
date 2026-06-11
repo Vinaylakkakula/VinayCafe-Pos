@@ -173,4 +173,33 @@ const NewReservationModal = ({ onClose, onSave, tables }) => {
   );
 };
 
-Object.assign(window, { ReservationsView, CustomersView, NotificationsPanel, NewReservationModal });
+const NewCustomerModal = ({ onClose, onSave }) => {
+  const [form, setForm] = React.useState({ name: '', phone: '', note: '' });
+  const upd = p => setForm(f => ({ ...f, ...p }));
+  const save = () => {
+    if (!form.name.trim()) return;
+    onSave({ id: uid('cus'), name: form.name.trim(), phone: form.phone.trim(), visits: 0, spent: 0, points: 0, tier: 'Bronze', last: 'Just now' });
+  };
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" style={{width:400}} onClick={e=>e.stopPropagation()}>
+        <div className="modal-head">
+          <div><div className="modal-title">Add Customer</div><div className="modal-sub">Register a new loyalty customer</div></div>
+          <button className="modal-close" onClick={onClose}><Icon name="x"/></button>
+        </div>
+        <div className="modal-body">
+          <div className="settings-grid">
+            <div className="setting-field full"><label>Full Name *</label><input autoFocus value={form.name} onChange={e=>upd({name:e.target.value})} placeholder="e.g. Priya Sharma"/></div>
+            <div className="setting-field full"><label>Phone</label><input value={form.phone} onChange={e=>upd({phone:e.target.value})} placeholder="+91 98765 43210"/></div>
+          </div>
+        </div>
+        <div className="modal-foot">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={save} disabled={!form.name.trim()}><Icon name="plus" size={13}/> Add Customer</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+Object.assign(window, { ReservationsView, CustomersView, NotificationsPanel, NewReservationModal, NewCustomerModal });
