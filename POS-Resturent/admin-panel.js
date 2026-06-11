@@ -34,7 +34,7 @@ const MenuItemModal = ({ item, categories, onClose, onSave }) => {
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" style={{ width: 560 }} onClick={e => e.stopPropagation()}>
+      <div className="modal" style={{ width: 560, maxHeight: "90vh", overflow: "auto" }} onClick={e => e.stopPropagation()}>
         <div className="modal-head">
           <div>
             <div className="modal-title">{isEdit ? "Edit Menu Item" : "Add Menu Item"}</div>

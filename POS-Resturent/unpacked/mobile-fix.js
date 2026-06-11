@@ -213,24 +213,20 @@
   /* ══════════════════════════════════════════════════════════
      MODALS — Bottom sheet, fully scrollable with sticky footer
      ══════════════════════════════════════════════════════════ */
-  /* ── Modal backdrop: anchor sheet to bottom ── */
   .modal-backdrop {
     padding: 0 !important;
     align-items: flex-end !important;
     place-items: unset !important;
   }
 
-  /* ── Modal: bottom sheet, sized to content up to 88dvh ── */
   .modal {
     width: 100% !important;
     max-width: 100% !important;
     border-radius: 20px 20px 0 0 !important;
-    /* KEY: height:auto so short forms (Add Category) don't show blank space */
+    /* Size to content — no blank space for short forms */
     height: auto !important;
     max-height: 88dvh !important;
-    /* KEY: overflow:hidden so flex children control their own scroll */
     overflow: hidden !important;
-    /* Flex column: head + scrollable-body + sticky-foot */
     display: flex !important;
     flex-direction: column !important;
     margin: 0 !important;
@@ -245,16 +241,16 @@
     to   { transform: translateY(0);    opacity: 1;   }
   }
 
-  /* ── Modal head: fixed height, never shrinks ── */
   .modal-head {
     padding: 16px 18px 14px !important;
-    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
     background: var(--bg-1) !important;
     z-index: 2 !important;
     border-bottom: 1px solid var(--line) !important;
     border-top: 3px solid transparent !important;
     background-clip: padding-box !important;
   }
+  /* Visual drag handle pill */
   .modal-head::before {
     content: '' !important;
     display: block !important;
@@ -268,26 +264,18 @@
   .modal-title { font-size: 17px !important; }
   .modal-sub   { font-size: 12px !important; }
 
-  /* ── Modal body: THE KEY FIX ──
-     - flex: 1 1 0  → fills available space between head & foot
-     - min-height: 0 → allows shrinking below content size (required for flex scroll)
-     - overflow-y: auto → scroll when content is taller than allocated space
-     Short forms: body content is small, modal shrinks to fit (height:auto on .modal)
-     Long forms: body fills up to 88dvh minus head+foot (~130px), then scrolls
-  ── */
   .modal-body {
-    flex: 1 1 0 !important;
-    min-height: 0 !important;
+    /* DO NOT use flex:1 — that forces expansion and creates blank space */
+    flex: 0 1 auto !important;
     overflow-y: auto !important;
-    overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
-    overscroll-behavior: contain !important;
     padding: 16px 18px !important;
+    /* Constrain to remaining space so it scrolls on long forms */
+    max-height: calc(88dvh - 130px) !important;
   }
 
-  /* ── Modal foot: sticky at bottom, never grows ── */
   .modal-foot {
-    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
     display: flex !important;
     gap: 10px !important;
     padding: 12px 18px !important;
